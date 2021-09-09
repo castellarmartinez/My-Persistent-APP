@@ -1,5 +1,5 @@
 const express = require('express')
-const {addUser} = require('../controllers/users-controllers')
+const {addUser, getUsers} = require('../controllers/users-controllers')
 // const {mostrarUsuarios, agregarUsuarios} = require('../models/usuarios')
 // const {autenticacionAdmin, intentoDeIngreso} = require('../middlewares/autenticacion');
 // const { usuarioRegistrado, usuarioValido } = require('../middlewares/comporbacionUsuarios');
@@ -25,6 +25,10 @@ const router = express.Router()
 //     res.send('El usuarion ingresó exitosamente.'); 
 // })
 
+router.get('/login', (req, res) => {
+    res.send('You have successfully signed into your account.'); 
+})
+
 /**
  * @swagger
  * /usuarios/lista:
@@ -45,9 +49,19 @@ const router = express.Router()
  *              description: Se necesita permiso para realizar esa accion
  */
 
-// router.get('/lista', (req, res) => {
-//     res.json(mostrarUsuarios());
-// })
+router.get('/lista', async (req, res) => 
+{
+    const users = await getUsers()
+
+    if(users)
+    {
+        res.status(201).json(users)
+    }
+    else
+    {
+        res.status(500).send('Could not access registered users.')
+    }
+})
 
 /**
  * @swagger
@@ -71,11 +85,19 @@ const router = express.Router()
  *              description: El username y/o email ya se encuentran registrados.
  */
 
-router.post('/registro', (req, res) => {
+router.post('/registro', async (req, res) => {
     const newUser = req.body
-    addUser(newUser)
-    res.status(201).send('Congratulations!\nYour account has been successfully'
-    + ' created.')   
+    const success = await addUser(newUser)
+    
+    if(success)
+    {
+        res.status(201).send('Congratulations!\nYour account has been successfully'
+        + ' created.') 
+    }  
+    else
+    {
+        res.status(500).send('Your account could not be created.')
+    }
 })
 
 /**

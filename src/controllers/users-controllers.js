@@ -1,16 +1,28 @@
 const User = require('../models/user')
 
-const addUser = (newUser) =>
+exports.addUser = async (newUser) =>
 {
     const user = new User(newUser)
-    
-    user.save().then(() => 
+
+    try
     {
-        console.log(user)
-    }).catch((error) => 
+        return await user.save()
+    }
+    catch(error)
     {
-        console.log('Error!', error.message)
-    })
+        return console.log(error.message)
+    }
 }
 
-module.exports = {addUser}
+exports.getUsers = async () =>
+{
+    try
+    {
+        const users = await User.find({})
+        return users
+    }
+    catch(error)
+    {
+        return console.log(error.message)
+    }
+}

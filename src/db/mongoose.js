@@ -4,9 +4,16 @@ database()
 
 async function database()
 {
-    const db = await mongoose.connect('mongodb://127.0.0.1:27017/Delilah-Resto')
-    
-    console.log('Connected to the database:', db.connection.name)
+    try
+    {
+        const db = await mongoose.connect('mongodb://127.0.0.1:27017/Delilah-Resto')
+        console.log('Connected to the database:', db.connection.name)
+    }
+    catch(error)
+    {
+        console.log('Error connecting to 127.0.0.1:27017.\n' + 
+        'Caused by: Connection refused.')
+    }
 }
 
 // main().catch(err => console.log(err))

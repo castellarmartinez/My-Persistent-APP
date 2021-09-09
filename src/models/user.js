@@ -8,20 +8,13 @@ const User = mongoose.model('User',
         type: String,
         required: true
     },
-    age:
+
+    user:
     {
-        type: Number,
-        required: true,
-        default: 18,
-        
-        validate(value)
-        {
-            if(value < 0 || value > 127)
-            {
-                throw new Error('Age must be a positive number less than 127.')
-            }
-        }
+        type: String,
+        required: true
     },
+
     email:
     {
         type: String,
@@ -36,6 +29,7 @@ const User = mongoose.model('User',
             }
         }
     },
+
     password:
     {
         type: String,
@@ -49,8 +43,13 @@ const User = mongoose.model('User',
                 '"password" and must have at least 6 characters long.')
             }
         }
-    }
+    },
 
+    phone:
+    {
+        type: Number,
+        required: true,
+    }
 })
 
 module.exports = User
