@@ -1,5 +1,5 @@
 const express = require('express')
-const {addUser, getUsers} = require('../controllers/users-controllers')
+const {addUser, getUsers} = require('../controllers/users-controller')
 // const {mostrarUsuarios, agregarUsuarios} = require('../models/usuarios')
 // const {autenticacionAdmin, intentoDeIngreso} = require('../middlewares/autenticacion');
 // const { usuarioRegistrado, usuarioValido } = require('../middlewares/comporbacionUsuarios');
