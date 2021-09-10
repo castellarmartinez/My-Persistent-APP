@@ -1,5 +1,5 @@
 const express = require('express')
-const {addProduct, getProducts} = require('../controllers/products-controller')
+const {addProduct, getProducts, updateProduct, deleteProduct} = require('../controllers/products-controller')
 // const {obtenerProductos, agregarProductos, modificarProductos, eliminarProductos,
 //     obtenerEsteProducto} = require('../models/productos')
 // const {autenticacionAdmin} = require('../middlewares/autenticacion');
@@ -77,7 +77,6 @@ router.post('/agregar/:id/', async (req, res) =>
 {
     const newProduct = req.body
     const _id = req.params.id
-
     const success = await addProduct(newProduct, _id)
 
     if(success)
@@ -127,6 +126,22 @@ router.post('/agregar/:id/', async (req, res) =>
 //     res.send('El producto se modificó exitosamente.');
 // })
 
+router.put('/modificar/:id/', async (req, res) => 
+{
+    const update = req.body
+    const _id = req.params.id
+    const success = await updateProduct(_id, update)
+    
+    if(success)
+    {
+        res.status(201).send('The product has been updated.')
+    }
+    else
+    {
+        res.status(500).send('Could not update the product.')
+    }
+})
+
 /**
  * @swagger
  * /productos/eliminar/{productoId}:
@@ -155,6 +170,22 @@ router.post('/agregar/:id/', async (req, res) =>
 
 //     res.send('El producto se eliminó exitosamente.');
 // })
+
+router.delete('/eliminar/:id/', async (req, res) => 
+{
+    const _id = req.params.id
+    const success = await deleteProduct(_id)
+
+    if(success)
+    {
+        res.status(201).send('The product has been deleted.')
+    }
+    else
+    {
+        res.status(500).send('Could not delete the product.')
+    }
+
+})
 
 /**
  * @swagger
