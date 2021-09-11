@@ -1,4 +1,4 @@
-const Payment = require('../models/payment-methods')
+const Payment = require('../models/payment-method')
 
 exports.addPaymentMethod = async ({method}) =>
 {
