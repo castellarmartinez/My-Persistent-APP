@@ -14,7 +14,7 @@ app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerSpecs))
 
 app.use('/usuarios', require('./routes/users-route'))
 app.use('/productos', require('./routes/products-route'))
-// app.use('/mediosdepago', require('./routes/mediosPagoRoute'))
+app.use('/mediosdepago', require('./routes/payment-route'))
 // app.use('/pedidos', require('./routes/pedidosRoute'))
 
 // app.use('/:id/', (req, res) => { res.status(400).send('No se pudo procesar la operación.')})

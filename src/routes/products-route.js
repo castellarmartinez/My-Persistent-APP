@@ -184,7 +184,6 @@ router.delete('/eliminar/:id/', async (req, res) =>
     {
         res.status(500).send('Could not delete the product.')
     }
-
 })
 
 /**

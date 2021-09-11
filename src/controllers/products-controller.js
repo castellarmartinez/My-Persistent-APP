@@ -2,13 +2,6 @@ const Product = require('../models/products')
 
 exports.addProduct = async ({name, price}, _id) =>
 {
-    // const newProduct = 
-    // {
-    //     _id,
-    //     name,
-    //     price
-    // }
-    // console.log(newProduct)
     const product = new Product({_id, name, price})
 
     try
@@ -55,7 +48,7 @@ exports.updateProduct = async (_id, update) =>
     }
 }
 
-exports.deleteProduct = async (_id, update) =>
+exports.deleteProduct = async (_id) =>
 {
     try
     {
