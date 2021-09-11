@@ -18,7 +18,14 @@ exports.getUsers = async () =>
 {
     try
     {
-        const users = await User.find({})
+        const result = await User.find({})
+        
+        const users = result.map((element) => 
+        {
+            const {name, usermane, email, phone, isAdmin} = element
+            return {name, usermane, email, phone, isAdmin}
+        })
+
         return users
     }
     catch(error)

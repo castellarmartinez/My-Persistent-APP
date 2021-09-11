@@ -60,8 +60,12 @@ exports.deletePaymentMethod = async (_id) =>
     {
         const method = await Payment.findByIdAndDelete(_id)
         const methods = await this.getPaymentMethods()
-        methods.forEach((element, index) => (element.option = index + 1))
-        console.log(methods)
+        
+        for(let i = 1; i <= methods.length; i++)
+        {
+            await this.updatePaymentMethod(methods[i].option, i)
+        }
+        
         return method
     }
     catch(error)

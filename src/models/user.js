@@ -9,7 +9,7 @@ const User = mongoose.model('User',
         required: true
     },
 
-    user:
+    username:
     {
         type: String,
         required: true
@@ -49,6 +49,12 @@ const User = mongoose.model('User',
     {
         type: Number,
         required: true,
+    },
+
+    isAdmin:
+    {
+        type: Boolean,
+        default: false
     }
 })
 
