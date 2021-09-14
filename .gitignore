@@ -12,3 +12,5 @@ src/middlewares/comporbacionUsuarios.js
 src/middlewares/comprobacionPago.js
 src/middlewares/comprobacionPedidos.js
 src/middlewares/comprobacionProductos.js
+src/e.js
+.env
