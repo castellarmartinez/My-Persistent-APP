@@ -98,12 +98,10 @@ const tryRegisteredUser = async (req, res, next) =>
 
         if(emailTaken)
         {
-            console.log(emailTaken)
-            res.status(400).send('Email already in user.')
+            res.status(400).send('Email already in use.')
         }
         else if(usernameTaken)
         {
-            console.log(usernameTaken)
             res.status(400).send('Username taken.')
         }
         else

@@ -1,5 +1,6 @@
 const express = require('express')
 const {addProduct, getProducts, updateProduct, deleteProduct} = require('../controllers/products-controller')
+const { tryValidProduct, tryProductRegistered, tryProductUpdate } = require('../middlewares/product-validation')
 // const {obtenerProductos, agregarProductos, modificarProductos, eliminarProductos,
 //     obtenerEsteProducto} = require('../models/productos')
 // const {autenticacionAdmin} = require('../middlewares/autenticacion');
@@ -73,7 +74,7 @@ router.get('/lista', async (req, res) =>
 //     res.send('El producto se agregó exitosamente.');
 // })
 
-router.post('/agregar/:id/', async (req, res) => 
+router.post('/agregar/:id/', tryValidProduct, tryProductRegistered, async (req, res) => 
 {
     const newProduct = req.body
     const _id = req.params.id
@@ -126,12 +127,12 @@ router.post('/agregar/:id/', async (req, res) =>
 //     res.send('El producto se modificó exitosamente.');
 // })
 
-router.put('/modificar/:id/', async (req, res) => 
+router.put('/modificar/:id/', tryValidProduct, tryProductUpdate, async (req, res) => 
 {
     const update = req.body
     const _id = req.params.id
     const success = await updateProduct(_id, update)
-    
+
     if(success)
     {
         res.status(201).send('The product has been updated.')
@@ -171,7 +172,7 @@ router.put('/modificar/:id/', async (req, res) =>
 //     res.send('El producto se eliminó exitosamente.');
 // })
 
-router.delete('/eliminar/:id/', async (req, res) => 
+router.delete('/eliminar/:id/', tryProductUpdate, async (req, res) => 
 {
     const _id = req.params.id
     const success = await deleteProduct(_id)
