@@ -1,5 +1,6 @@
 const express = require('express')
-const {addUser, getUsers} = require('../controllers/users-controller')
+const {addUser, getUsers} = require('../controllers/users-controller');
+const {tryRegisteredUser, tryValidUser} = require('../middlewares/user-validation');
 // const {mostrarUsuarios, agregarUsuarios} = require('../models/usuarios')
 // const {autenticacionAdmin, intentoDeIngreso} = require('../middlewares/autenticacion');
 // const { usuarioRegistrado, usuarioValido } = require('../middlewares/comporbacionUsuarios');
@@ -25,7 +26,8 @@ const router = express.Router()
 //     res.send('El usuarion ingresó exitosamente.'); 
 // })
 
-router.get('/login', (req, res) => {
+router.get('/login', (req, res) => 
+{
     res.send('You have successfully signed into your account.'); 
 })
 
@@ -85,7 +87,8 @@ router.get('/lista', async (req, res) =>
  *              description: El username y/o email ya se encuentran registrados.
  */
 
-router.post('/registro', async (req, res) => {
+router.post('/registro', tryValidUser, tryRegisteredUser, async (req, res) => 
+{
     const newUser = req.body
     const success = await addUser(newUser)
     

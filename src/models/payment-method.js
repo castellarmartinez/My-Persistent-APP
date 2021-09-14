@@ -13,11 +13,6 @@ const Payment = mongoose.model('Payment',
         type: Number,
         required: true
     }
-    // option:
-    // {
-    //     type: Number,
-    //     required: true
-    // }
 })
 
 module.exports = Payment
