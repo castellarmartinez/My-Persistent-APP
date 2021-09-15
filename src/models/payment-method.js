@@ -8,9 +8,10 @@ const Payment = mongoose.model('Payment',
         required: true
     },
 
-    _id:
+    option:
     {
         type: Number,
+        unique: true,
         required: true
     }
 })

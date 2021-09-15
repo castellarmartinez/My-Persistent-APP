@@ -10,6 +10,7 @@ const ProductSchema = Joi.object({
 
     name: 
         Joi.string()
+        .alphanum()
         .min(3)
         .max(32)
         .required(),
@@ -50,7 +51,7 @@ const tryValidProduct = async (req, res, next) =>
         else if(error.message.includes('"name"'))
         {
             res.status(300).send('You must enter a name with a length between ' 
-            + '3-32 characters and only contain letters and spaces.')
+            + '3-32 characters and only contain letters, numbers and spaces.')
         }
         else if(error.message.includes('"price"'))
         {

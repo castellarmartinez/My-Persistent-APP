@@ -1,17 +1,24 @@
 const Payment = require('../models/payment-method')
 
-exports.addPaymentMethod = async ({method}) =>
+const addPaymentMethod = async ({method}) =>
 {
-    const methods = await this.getPaymentMethods()
-    let last = methods.slice(-1)[0].option
-    let _id = 0
-
-    last ? _id = ++last : _id = 1
-
-    const newMethod = new Payment({method, _id})
-
     try
     {
+        const allMethods = await getPaymentMethods()
+        let option
+
+        if(allMethods.length === 0)
+        {
+            option = 1
+        }
+        else
+        {
+            let last = allMethods.slice(-1)[0].option           
+            last ? option = ++last : option = 1
+        }
+
+        const newMethod = new Payment({method, option})
+
         return await newMethod.save()
     }
     catch(error)
@@ -20,15 +27,15 @@ exports.addPaymentMethod = async ({method}) =>
     }
 }
 
-exports.getPaymentMethods = async () =>
+const getPaymentMethods = async () =>
 {
     try
     {
         const result = await Payment.find({})
-
+        
         const methods = result.map((element) => 
         {
-            const {method, _id:option} = element
+            const {method, option} = element
             return {method, option}
         })
 
@@ -40,12 +47,13 @@ exports.getPaymentMethods = async () =>
     }
 }
 
-exports.updatePaymentMethod = async (_id, method) =>
+const updatePaymentMethods = async (option, method) =>
 {    
     try
     {
-        const methodModified = await Payment.findByIdAndUpdate(_id, method)
-
+        console.log(method, option)
+        const methodModified = await Payment.findOneAndUpdate({option}, method)
+        console.log(methodModified)
         return methodModified
     }
     catch(error)
@@ -54,16 +62,16 @@ exports.updatePaymentMethod = async (_id, method) =>
     }
 }
 
-exports.deletePaymentMethod = async (_id) =>
+const deletePaymentMethods = async (option) =>
 {
     try
     {
-        const method = await Payment.findByIdAndDelete(_id)
-        const methods = await this.getPaymentMethods()
-        
-        for(let i = 1; i <= methods.length; i++)
+        const method = await Payment.findOneAndDelete({option})
+        const allMethods = await getPaymentMethods()
+
+        for(let i = 0; i < allMethods.length; i++)
         {
-            await this.updatePaymentMethod(methods[i].option, i)
+            await Payment.findOneAndUpdate({option: allMethods[i].option}, {option: i + 1})
         }
         
         return method
@@ -73,3 +81,5 @@ exports.deletePaymentMethod = async (_id) =>
         return console.log(error.message)
     }
 }
+
+module.exports = {addPaymentMethod, getPaymentMethods, updatePaymentMethods, deletePaymentMethods}

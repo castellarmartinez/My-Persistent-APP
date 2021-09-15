@@ -1,6 +1,7 @@
 const express = require('express')
-const {addPaymentMethod, getPaymentMethods, updatePaymentMethod, 
-    deletePaymentMethod} = require('../controllers/payments-controller')
+const {addPaymentMethod, getPaymentMethods, updatePaymentMethods, 
+    deletePaymentMethods} = require('../controllers/payments-controller');
+const { tryMethodUpdate, tryValidMethod } = require('../middlewares/payment-validation');
 // const {obtenerMediosDePago, agregarMediosDePago, modificarMediosDePago, eliminarMediosDePago} = 
 // require('../models/mediosPago')
 // const {autenticacionAdmin, autenticacionUsuario} = require('../middlewares/autenticacion');
@@ -74,7 +75,7 @@ router.get('/lista', async (req, res) =>
 //     res.status(201).send('El medio de pago se agregó exitosamente.')
 // })
 
-router.post('/agregar', async (req, res) => 
+router.post('/agregar', tryValidMethod, async (req, res) => 
 {
     const method = req.body
     const success = await addPaymentMethod(method)
@@ -124,11 +125,11 @@ router.post('/agregar', async (req, res) =>
 //     res.send('El medio de pago se modificó exitosamente.');
 // })
 
-router.put('/modificar/:id/', async (req, res) => 
+router.put('/modificar/:id/', tryMethodUpdate, tryValidMethod, async (req, res) => 
 {
     const update = req.body
-    const _id = req.params.id
-    const success = await updatePaymentMethod(_id, update)
+    const option = req.params.id
+    const success = await updatePaymentMethods(option, update)
     
     if(success)
     {
@@ -168,11 +169,11 @@ router.put('/modificar/:id/', async (req, res) =>
 //     res.send('El medio de pago se eliminó exitosamente.');
 // })
 
-router.delete('/eliminar/:id/', async (req, res) => 
+router.delete('/eliminar/:id/', tryMethodUpdate, async (req, res) => 
 {
-    const _id = req.params.id
-    const success = await deletePaymentMethod(_id)
-
+    const option = req.params.id
+    const success = await deletePaymentMethods(option)
+    console.log(success)
     if(success)
     {
         res.status(201).send('The payment method has been deleted.')
