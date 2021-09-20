@@ -1,24 +1,26 @@
 const express = require('express')
-const {addUser, getUsers} = require('../controllers/users-controller');
-const {tryRegisteredUser, tryValidUser} = require('../middlewares/user-validation');
-// const {mostrarUsuarios, agregarUsuarios} = require('../models/usuarios')
-// const {autenticacionAdmin, intentoDeIngreso} = require('../middlewares/autenticacion');
-// const { usuarioRegistrado, usuarioValido } = require('../middlewares/comporbacionUsuarios');
+const {addUser, getUsers, generateAuthToken} = require('../controllers/users-controller')
+const {tryRegisteredUser, tryValidUser, tryLogin} = require('../middlewares/user-validation')
 
 const router = express.Router()
 
 /**
  * @swagger
  * /usuarios/login:
- *  get:
+ *  post:
  *      tags: [Usuarios]
  *      summary: Ingreso a todos los usuarios registrados.
  *      description: La da acceso a un usuario.
- *      parameters: []
+ *      requestBody:
+ *          required: true
+ *          content:
+ *              application/json:
+ *                  schema:
+ *                      $ref: '#/components/schemas/login'
  *      responses:
  *          "200":
  *              description: El usuarion ingresó exitosamente.
- *          "401":
+ *          "500":
  *              description: El usuario y/o contraseña no son validos.
  */
 
@@ -26,9 +28,12 @@ const router = express.Router()
 //     res.send('El usuarion ingresó exitosamente.'); 
 // })
 
-router.get('/login', (req, res) => 
+router.post('/login', tryLogin, async (req, res) => 
 {
-    res.send('You have successfully signed into your account.'); 
+    const user = req.user
+    const token = await generateAuthToken(user)
+    res.status(200).send(`You are now logged in. Your token for this session:
+    ${token}`) 
 })
 
 /**
@@ -124,6 +129,29 @@ router.post('/registro', tryValidUser, tryRegisteredUser, async (req, res) =>
  *              nombre: Arnedes Olegario
  *              nombre de usuario: arneolegario
  *              administrador: false
+ */
+
+/**
+ * @swagger
+ * tags:
+ *  name: Usuarios
+ *  description: Seccion de usuarios
+ * 
+ * components: 
+ *  schemas:
+ *      login:
+ *          type: object
+ *          requred:
+ *              -email
+ *              -password
+ *          properties:
+ *              email:
+ *                  type: string
+ *              password:
+ *                  type: string
+ *          example:
+ *              email: aolegario@nebular.com
+ *              password: arneolegario
  */
 
 /**

@@ -1,4 +1,5 @@
 const Joi = require('joi')
+const bcrypt = require('bcrypt')
 const User = require('../models/user')
 
 const UsuarioSchema = Joi.object({
@@ -115,4 +116,34 @@ const tryRegisteredUser = async (req, res, next) =>
     }
 }
 
-module.exports = {tryValidUser, tryRegisteredUser}
+const tryLogin = async (req, res, next) =>
+{   
+    try
+    {
+        const {email, password} = req.body
+        const user = await User.findOne({email})
+
+        if(user)
+        {
+            const correctPassword = bcrypt.compareSync(password, user.password)
+    
+            if(!correctPassword)
+            {
+                throw new Error('The password you enetered is incorrect.')
+            }
+    
+            req.user = user
+            next()
+        }
+        else
+        {
+            throw new Error('No user registered with that email.')
+        }
+    }
+    catch(error)
+    {
+        res.status(401).send(error.message)
+    }
+}
+
+module.exports = {tryValidUser, tryRegisteredUser, tryLogin}

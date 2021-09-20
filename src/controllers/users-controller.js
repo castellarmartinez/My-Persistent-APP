@@ -1,4 +1,5 @@
 const User = require('../models/user')
+const jwt = require('jsonwebtoken')
 
 exports.addUser = async (newUser) =>
 {   
@@ -32,4 +33,11 @@ exports.getUsers = async () =>
     {
         return console.log(error.message)
     }
+}
+
+exports.generateAuthToken = async (user) =>
+{
+    const token = jwt.sign({_id: user._id.toString()}, 'RestaurantAPI')
+    
+    return token
 }

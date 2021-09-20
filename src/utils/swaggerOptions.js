@@ -12,17 +12,31 @@ const swaggerOptions = {
                 description: 'Local server'
             }
         ],
+        // components: {
+        //     securitySchemes: {
+        //         basicAuth: {
+        //             type: "http",
+        //             scheme: "basic"
+        //         }
+        //     }
+        // },
+        // security: [
+        //     {
+        //         basicAuth: []
+        //     }
+        // ]
         components: {
             securitySchemes: {
-                basicAuth: {
+                bearerAuth: {
                     type: "http",
-                    scheme: "basic"
+                    scheme: "bearer",
+                    bearerFormat: "JWT"
                 }
             }
         },
         security: [
             {
-                basicAuth: []
+                bearerAuth: []
             }
         ]
     },
