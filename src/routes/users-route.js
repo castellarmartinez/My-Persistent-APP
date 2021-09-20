@@ -91,7 +91,7 @@ router.post('/registro', tryValidUser, tryRegisteredUser, async (req, res) =>
 {
     const newUser = req.body
     const success = await addUser(newUser)
-    
+
     if(success)
     {
         res.status(201).send('Congratulations!\nYour account has been successfully'

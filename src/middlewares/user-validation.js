@@ -60,7 +60,7 @@ const tryValidUser = async (req, res, next) =>
         if(error.message.includes('"name"'))
         {
             res.status(300).send('You must enter a name with a length between ' 
-            + '3-32 characters and only contain letters and spaces.')
+            + '3-32 characters only containing letters and spaces.')
         }
         else if(error.message.includes('"email"'))
         {
@@ -69,12 +69,12 @@ const tryValidUser = async (req, res, next) =>
         else if(error.message.includes('"password"'))
         {
             res.status(300).send('You must enter a password with a length ' + 
-            'between 6-32 alphanumeric characters.')
+            'between 6-32 characters.')
         }
         else if(error.message.includes('"username"'))
         {
             res.status(300).send('You must enter an username with a length ' +
-            ' between 3-32 characters and only contain letters and numbers.')
+            ' between 3-32 characters only containing letters and numbers.')
         }
         else if(error.message.includes('"phone"'))
         {

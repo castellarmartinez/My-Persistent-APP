@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
+const bcrypt = require('bcrypt')
 
-const User = mongoose.model('User',
+const userSchema = new mongoose.Schema(
 {
     name:
     {
@@ -47,5 +48,20 @@ const User = mongoose.model('User',
         default: false
     }
 })
+
+userSchema.pre('save', function(next)
+{
+    const user = this
+
+    user.password = bcrypt.hashSync(user.password, 8)
+    user.name = user.name.toLowerCase()
+    user.name = user.name.replace(/\b\w/g, c => c.toUpperCase())
+    user.username = user.username.toLowerCase()
+    user.username = user.username.replace(/\b\w/g, c => c.toUpperCase())
+
+    next()
+})
+
+const User = mongoose.model('User', userSchema)
 
 module.exports = User

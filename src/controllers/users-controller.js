@@ -1,10 +1,7 @@
 const User = require('../models/user')
 
 exports.addUser = async (newUser) =>
-{
-    newUser.name = newUser.name.toLowerCase()
-    newUser.name = newUser.name.replace(/\b\w/g, c => c.toUpperCase())
-    
+{   
     const user = new User(newUser)
 
     try
