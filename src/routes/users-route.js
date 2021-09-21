@@ -1,6 +1,7 @@
 const express = require('express')
 const {addUser, getUsers, generateAuthToken} = require('../controllers/users-controller')
-const {tryRegisteredUser, tryValidUser, tryLogin} = require('../middlewares/user-validation')
+const {tryRegisteredUser, tryValidUser, tryLogin, tryLogout} = require('../middlewares/user-validation')
+const User = require('../models/user')
 
 const router = express.Router()
 
@@ -32,8 +33,45 @@ router.post('/login', tryLogin, async (req, res) =>
 {
     const user = req.user
     const token = await generateAuthToken(user)
+
     res.status(200).send(`You are now logged in. Your token for this session:
     ${token}`) 
+})
+
+/**
+ * @swagger
+ * /usuarios/logout:
+ *  post:
+ *      tags: [Usuarios]
+ *      summary: Obtener las cuentas registradas (nombre, usuario, administrador).
+ *      description: Devuelve una lista con los usuarios registrados.
+ *      responses:
+ *          200:
+ *              description: Operación exitosa.
+ *              content:
+ *                  application/json:
+ *                      schema:
+ *                          type: array
+ *                          items:
+ *                              $ref: '#/components/schemas/logout'
+ *          401:
+ *              description: Se necesita permiso para realizar esa accion
+ */
+
+router.post('/logout', tryLogout, async (req, res) => 
+{
+    try
+    {
+        req.user.token = ''
+
+        await req.user.save()
+
+        res.status(200).send('Logout succesfully.')
+    }
+    catch(error)
+    {
+        res.status(400).send(error.message)
+    }
 })
 
 /**
@@ -58,6 +96,8 @@ router.post('/login', tryLogin, async (req, res) =>
 
 router.get('/lista', async (req, res) => 
 {
+    const token = req.header('Authorization')
+    console.log(token)
     const users = await getUsers()
 
     if(users)
@@ -117,6 +157,29 @@ router.post('/registro', tryValidUser, tryRegisteredUser, async (req, res) =>
  * components: 
  *  schemas:
  *      lista de usuarios:
+ *          type: object
+ *          properties:
+ *              nombre:
+ *                  type: string
+ *              usuario:
+ *                  type: string
+ *              administrador:
+ *                  type: boolean
+ *          example:
+ *              nombre: Arnedes Olegario
+ *              nombre de usuario: arneolegario
+ *              administrador: false
+ */
+
+/**
+ * @swagger
+ * tags:
+ *  name: Usuarios
+ *  description: Seccion de usuarios
+ * 
+ * components: 
+ *  schemas:
+ *      logout:
  *          type: object
  *          properties:
  *              nombre:
