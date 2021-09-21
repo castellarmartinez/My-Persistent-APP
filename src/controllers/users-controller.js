@@ -36,8 +36,17 @@ exports.getUsers = async () =>
 }
 
 exports.generateAuthToken = async (user) =>
-{
-    const token = jwt.sign({_id: user._id.toString()}, 'RestaurantAPI')
-    
-    return token
+{   
+    try
+    {
+        const token = jwt.sign({_id: user._id.toString()}, 'RestaurantAPI')
+        user.token = token
+        await user.save()
+
+        return token
+    }
+    catch(error)
+    {
+        return console.log(error.message)
+    }
 }

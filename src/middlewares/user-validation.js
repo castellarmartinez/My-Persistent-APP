@@ -1,5 +1,6 @@
 const Joi = require('joi')
 const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken')
 const User = require('../models/user')
 
 const UsuarioSchema = Joi.object({
@@ -117,7 +118,7 @@ const tryRegisteredUser = async (req, res, next) =>
 }
 
 const tryLogin = async (req, res, next) =>
-{   
+{ 
     try
     {
         const {email, password} = req.body
@@ -126,10 +127,10 @@ const tryLogin = async (req, res, next) =>
         if(user)
         {
             const correctPassword = bcrypt.compareSync(password, user.password)
-    
+
             if(!correctPassword)
             {
-                throw new Error('The password you enetered is incorrect.')
+                throw new Error('The password you entered is incorrect.')
             }
     
             req.user = user
@@ -146,4 +147,27 @@ const tryLogin = async (req, res, next) =>
     }
 }
 
-module.exports = {tryValidUser, tryRegisteredUser, tryLogin}
+const tryLogout = async (req, res, next) =>
+{
+    try
+    {
+        const token = req.header('Authorization').replace('Bearer ', '')
+        const decoded = jwt.verify(token, 'RestaurantAPI')
+        const user = await User.findOne({_id: decoded._id, token: token})
+
+        if(!user)
+        {
+            throw new Error()
+        }
+
+
+        req.user = user
+        next()
+    }
+    catch(error)
+    {
+        res.status(401).send('Please authenticate.')
+    }
+}
+
+module.exports = {tryValidUser, tryRegisteredUser, tryLogin, tryLogout}
