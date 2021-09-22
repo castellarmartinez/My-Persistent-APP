@@ -1,11 +1,9 @@
 const express = require('express')
 const {addPaymentMethod, getPaymentMethods, updatePaymentMethods, 
     deletePaymentMethods} = require('../controllers/payments-controller');
-const { tryMethodUpdate, tryValidMethod } = require('../middlewares/payment-validation');
-// const {obtenerMediosDePago, agregarMediosDePago, modificarMediosDePago, eliminarMediosDePago} = 
-// require('../models/mediosPago')
-// const {autenticacionAdmin, autenticacionUsuario} = require('../middlewares/autenticacion');
-// const { medioValido, modificarValido, eliminarValido } = require('../middlewares/comprobacionPago');
+const { adminAuthentication, userAuthentication } = require('../middlewares/auth');
+const { tryMethodUpdate, tryValidMethod } = 
+require('../middlewares/payment-validation')
 
 const router = express.Router();
 
@@ -29,11 +27,7 @@ const router = express.Router();
  *              description: Se necesita permiso para realizar esa accion
  */
 
-// router.get('/lista', autenticacionUsuario, (req, res) => {
-//     res.json(obtenerMediosDePago())
-// })
-
-router.get('/lista', async (req, res) => 
+router.get('/lista', userAuthentication, async (req, res) => 
 {
     const methods = await getPaymentMethods()
 
@@ -68,14 +62,7 @@ router.get('/lista', async (req, res) =>
  *              description: Se necesita permiso para realizar esa accion.
  */
 
-// router.post('/agregar', autenticacionAdmin, medioValido, (req, res) => {
-//     const medio = req.body;
-//     agregarMediosDePago(medio);
-
-//     res.status(201).send('El medio de pago se agregó exitosamente.')
-// })
-
-router.post('/agregar', tryValidMethod, async (req, res) => 
+router.post('/agregar', adminAuthentication, tryValidMethod, async (req, res) => 
 {
     const method = req.body
     const success = await addPaymentMethod(method)
@@ -117,15 +104,8 @@ router.post('/agregar', tryValidMethod, async (req, res) =>
  *              description: Se necesitan permisos de administrador para realizar esa operación.
  */
 
-// router.put('/modificar/:id/', autenticacionAdmin, modificarValido, (req, res) => {
-//     const opcion = req.params.id;
-//     const {medio} = req.body;
-//     modificarMediosDePago(medio, opcion)
-
-//     res.send('El medio de pago se modificó exitosamente.');
-// })
-
-router.put('/modificar/:id/', tryMethodUpdate, tryValidMethod, async (req, res) => 
+router.put('/modificar/:id/', adminAuthentication, tryMethodUpdate, 
+tryValidMethod, async (req, res) => 
 {
     const update = req.body
     const option = req.params.id
@@ -162,14 +142,8 @@ router.put('/modificar/:id/', tryMethodUpdate, tryValidMethod, async (req, res) 
  *              description: Se necesitan permisos de administrador para realizar esa operación.
  */
 
-// router.delete('/eliminar/:id/', autenticacionAdmin, eliminarValido, (req, res) => {
-//     const opcion = req.params.id;
-//     eliminarMediosDePago(opcion);
-
-//     res.send('El medio de pago se eliminó exitosamente.');
-// })
-
-router.delete('/eliminar/:id/', tryMethodUpdate, async (req, res) => 
+router.delete('/eliminar/:id/', adminAuthentication, tryMethodUpdate, 
+async (req, res) => 
 {
     const option = req.params.id
     const success = await deletePaymentMethods(option)

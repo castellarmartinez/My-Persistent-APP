@@ -35,7 +35,7 @@ exports.getUsers = async () =>
     }
 }
 
-exports.generateAuthToken = async (user) =>
+exports.userLogIn = async (user) =>
 {   
     try
     {
@@ -44,6 +44,43 @@ exports.generateAuthToken = async (user) =>
         await user.save()
 
         return token
+    }
+    catch(error)
+    {
+        return console.log(error.message)
+    }
+}
+
+exports.userLogOut = async (user) =>
+{   
+    try
+    {
+        user.token = ''
+
+        return await user.save()
+    }
+    catch(error)
+    {
+        return console.log(error.message)
+    }
+}
+
+exports.suspendUser = async (email) =>
+{   
+    try
+    {
+        const user = await User.findOne({email})
+
+        if(user.isAdmin)
+        {
+            throw new Error('Admin user cannot be suspended.')
+        }
+
+        user.isActive = !user.isActive
+        const success = await user.save()
+        const message = user.isActive ? 'unsuspended.' : 'suspended.'
+
+        return {success, message}
     }
     catch(error)
     {

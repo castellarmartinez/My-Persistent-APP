@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
 const config = require('../config')
+const User = require('../models/user')
 
 database()
 
@@ -7,8 +8,15 @@ async function database()
 {
     try
     {
-        const db = await mongoose.connect(`mongodb://${config.default.DB_HOST}:27017/${config.default.DB_NAME}`)
+        await mongoose.connect(`mongodb://${config.default.DB_HOST}:27017/${config.default.DB_NAME}`)
         console.log('Connected to the database:', config.default.DB_NAME)
+
+        const users = await User.find()
+
+        if(users.length === 0)
+        {
+            await addAdminUser()
+        }
     }
     catch(error)
     {
@@ -17,6 +25,21 @@ async function database()
     }
 }
 
+
+async function addAdminUser()
+{
+    const admin = new User(
+    {
+        name: 'Administrator',
+        username: 'Admin',
+        email: 'admin@delilahresto.com',
+        password: '@)T0(Z]p',
+        isAdmin: true,
+        phone: 5557777
+    })
+
+    admin.save()
+}
 // main().catch(err => console.log(err))
 
 // async function main() {

@@ -132,6 +132,11 @@ const tryLogin = async (req, res, next) =>
             {
                 throw new Error('The password you entered is incorrect.')
             }
+
+            if(user.token !== '')
+            {
+                throw new Error('You are trying to log in again.')
+            }
     
             req.user = user
             next()

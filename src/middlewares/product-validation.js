@@ -10,7 +10,7 @@ const ProductSchema = Joi.object({
 
     name: 
         Joi.string()
-        .alphanum()
+        .pattern(new RegExp(/^[ a-zA-Z0-9]+$/))
         .min(3)
         .max(32)
         .required(),
@@ -64,7 +64,7 @@ const tryValidProduct = async (req, res, next) =>
     }
 }
 
-const tryProductRegistered = async (req, res, next) => 
+const tryRegisteredProduct = async (req, res, next) => 
 {
     const _id =  req.params.id;
 
@@ -111,4 +111,4 @@ const tryProductUpdate = async (req, res, next) =>
     }
 }
 
-module.exports = {tryProductRegistered, tryValidProduct, tryProductUpdate}
+module.exports = {tryRegisteredProduct, tryValidProduct, tryProductUpdate}

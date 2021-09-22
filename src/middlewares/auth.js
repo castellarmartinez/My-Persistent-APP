@@ -1,64 +1,87 @@
-const basicAuth = require('express-basic-auth');
-const {obtenerUsuarios} = require('../models/usuarios');
+const User = require('../models/user')
+const jwt = require('jsonwebtoken')
 
 // Funciones usadas para la creación de los middlewares
 
-function admin(usuario, contrasena){
-    const administrador = obtenerUsuarios().some((element) => 
-        element.usuario === usuario && element.contrasena === contrasena && element.administrador)
-
-    return administrador;
+async function bearerAuth(req) 
+{
+    if(req.header('Authorization'))
+    {
+        const token = req.header('Authorization').replace('Bearer ', '')
+        const decoded = jwt.verify(token, 'RestaurantAPI')
+    
+        return await User.findOne({_id: decoded._id, token: token})
+    }
 }
 
-function cliente(usuario, contrasena){
-    const cliente = obtenerUsuarios().some((element) => 
-        element.usuario === usuario && element.contrasena === contrasena && !element.administrador)
-
-    return cliente;
-}
-
-
-function registrado(usuario, contrasena){
-    const cliente = obtenerUsuarios().some((element) => 
-        element.usuario === usuario && element.contrasena === contrasena)
-
-    return cliente;
-}
-
-// Middlewares
-const auth = async (req, res, next) =>
+const adminAuthentication = async (req, res, next) =>
 {
     try
     {
-        const token = req.header('Authorization')
-        const decoded = jwt.verify(token, 'thisismynewcourse')
-        const user = await User.findOne({_id: decoded._id, 'tokens.token': token})
+        const user = await bearerAuth(req)
 
         if(!user)
         {
-            throw new Error()
+            throw new Error('Please authenticate.')
+        }
+        else if(!user.isAdmin)
+        {
+            throw new Error('You need admin privileges for this operation.')
+        }
+        else
+        {
+            next()
+        }
+    }
+    catch(error)
+    {
+        res.status(401).send(error.message)
+    }
+}
+
+const customerAuthentication = async (req, res, next) =>
+{
+    try
+    {
+        const user = await bearerAuth(req)
+
+        if(!user)
+        {
+            throw new Error('Please authenticate.')
+        }
+        else if(user.isAdmin)
+        {
+            throw new Error('Administrators cannot perform this operation.')
+        }
+        else
+        {
+            next()
+        }
+    }
+    catch(error)
+    {
+        res.status(401).send(error.message)
+    }
+}
+
+
+const userAuthentication = async (req, res, next) =>
+{
+    try
+    {
+        const user = await bearerAuth(req)
+
+        if(!user)
+        {
+            throw new Error('Please authenticate.')
         }
 
-        req.token = token
-        req.user = user
         next()
     }
     catch(error)
     {
-        res.status(401).send('Please authenticate.')
+        res.status(401).send(error.message)
     }
 }
 
-const autenticacionAdmin = basicAuth({ authorizer: admin, 
-    unauthorizedResponse: 'Debe ingresar como administrador para realizar esta operación.'});
-
-const autenticacionCliente = basicAuth({ authorizer: cliente, 
-    unauthorizedResponse: 'Debe ingresar como cliente para realizar esta operación.'});
-
-const autenticacionUsuario = basicAuth({ authorizer: registrado, 
-    unauthorizedResponse: 'Debe ser usuario registrado para realizar esta operación.'});
-
-const intentoDeIngreso = basicAuth({ authorizer: registrado, 
-    unauthorizedResponse: 'El usuario y/o contraseña no son validos.'});
-
-module.exports = {autenticacionAdmin, autenticacionCliente, autenticacionUsuario, intentoDeIngreso};
+module.exports = {adminAuthentication, customerAuthentication, userAuthentication}

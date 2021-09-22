@@ -1,10 +1,10 @@
 const express = require('express')
-const {addProduct, getProducts, updateProduct, deleteProduct} = require('../controllers/products-controller')
-const { tryValidProduct, tryProductRegistered, tryProductUpdate } = require('../middlewares/product-validation')
-// const {obtenerProductos, agregarProductos, modificarProductos, eliminarProductos,
-//     obtenerEsteProducto} = require('../models/productos')
-// const {autenticacionAdmin} = require('../middlewares/autenticacion');
-// const { productoExiste, idValido, productoValido } = require('../middlewares/comprobacionProductos');
+const {addProduct, getProducts, updateProduct, deleteProduct} = 
+require('../controllers/products-controller')
+const { adminAuthentication } = require('../middlewares/auth')
+const { tryValidProduct, tryRegisteredProduct, tryProductUpdate } = 
+require('../middlewares/product-validation')
+
 
 const router = express.Router()
 /**
@@ -66,15 +66,8 @@ router.get('/lista', async (req, res) =>
  *              description: Se necesitan permisos de administrador para realizar esa operación.
  */
 
-// router.post('/agregar/:id/', autenticacionAdmin, idValido, productoValido, (req, res) => {
-//     const producto = req.body;
-//     const id = req.params.id;
-//     agregarProductos(producto, id);
-
-//     res.send('El producto se agregó exitosamente.');
-// })
-
-router.post('/agregar/:id/', tryValidProduct, tryProductRegistered, async (req, res) => 
+router.post('/agregar/:id/', adminAuthentication, tryRegisteredProduct, 
+tryValidProduct, async (req, res) => 
 {
     const newProduct = req.body
     const _id = req.params.id
@@ -117,17 +110,8 @@ router.post('/agregar/:id/', tryValidProduct, tryProductRegistered, async (req, 
  *              description: Se necesitan permisos de administrador para realizar esa operación.
  */
 
-// router.put('/modificar/:id/', autenticacionAdmin, productoValido, productoExiste, (req, res) => {
-//     const productoModificado = req.body;
-//     const id = req.params.id;
-//     productoModificado.id = id;
-//     const productoOriginal = obtenerEsteProducto(id);
-//     modificarProductos(productoOriginal, productoModificado);
-
-//     res.send('El producto se modificó exitosamente.');
-// })
-
-router.put('/modificar/:id/', tryValidProduct, tryProductUpdate, async (req, res) => 
+router.put('/modificar/:id/', adminAuthentication, 
+tryProductUpdate, tryValidProduct, async (req, res) => 
 {
     const update = req.body
     const _id = req.params.id
@@ -172,7 +156,8 @@ router.put('/modificar/:id/', tryValidProduct, tryProductUpdate, async (req, res
 //     res.send('El producto se eliminó exitosamente.');
 // })
 
-router.delete('/eliminar/:id/', tryProductUpdate, async (req, res) => 
+router.delete('/eliminar/:id/',  adminAuthentication, tryProductUpdate, 
+async (req, res) => 
 {
     const _id = req.params.id
     const success = await deleteProduct(_id)

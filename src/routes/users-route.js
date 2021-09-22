@@ -1,7 +1,9 @@
 const express = require('express')
-const {addUser, getUsers, generateAuthToken} = require('../controllers/users-controller')
-const {tryRegisteredUser, tryValidUser, tryLogin, tryLogout} = require('../middlewares/user-validation')
-const User = require('../models/user')
+const {addUser, getUsers, userLogIn, userLogOut, suspendUser} = 
+require('../controllers/users-controller')
+const { adminAuthentication } = require('../middlewares/auth')
+const {tryRegisteredUser, tryValidUser, tryLogin, tryLogout} = 
+require('../middlewares/user-validation')
 
 const router = express.Router()
 
@@ -32,7 +34,7 @@ const router = express.Router()
 router.post('/login', tryLogin, async (req, res) => 
 {
     const user = req.user
-    const token = await generateAuthToken(user)
+    const token = await userLogIn(user)
 
     res.status(200).send(`You are now logged in. Your token for this session:
     ${token}`) 
@@ -60,17 +62,16 @@ router.post('/login', tryLogin, async (req, res) =>
 
 router.post('/logout', tryLogout, async (req, res) => 
 {
-    try
+    const user = req.user
+    const success = await userLogOut(user)
+
+    if(success)
     {
-        req.user.token = ''
-
-        await req.user.save()
-
-        res.status(200).send('Logout succesfully.')
+        res.status(201).send('Logged out successfully.')
     }
-    catch(error)
+    else
     {
-        res.status(400).send(error.message)
+        res.status(500).send('Unable to log out.')
     }
 })
 
@@ -94,10 +95,8 @@ router.post('/logout', tryLogout, async (req, res) =>
  *              description: Se necesita permiso para realizar esa accion
  */
 
-router.get('/lista', async (req, res) => 
+router.get('/lista', adminAuthentication, async (req, res) => 
 {
-    const token = req.header('Authorization')
-    console.log(token)
     const users = await getUsers()
 
     if(users)
@@ -145,6 +144,43 @@ router.post('/registro', tryValidUser, tryRegisteredUser, async (req, res) =>
     else
     {
         res.status(500).send('Your account could not be created.')
+    }
+})
+
+/**
+ * @swagger
+ * /usuarios/suspend:
+ *  put:
+ *      tags: [Usuarios]
+ *      summary: Suspender un usuario.
+ *      description: Permite la modificación de los productos en la tienda.
+ *      requestBody:
+ *          required: true
+ *          content:
+ *              application/json:
+ *                  schema:
+ *                      $ref: '#/components/schemas/suspend user'
+ *      responses:
+ *          200:
+ *              description: Operación exitosa.
+ *          400:
+ *              description: El producto no se pudo agregar por información errónea del mismo.
+ *          401:
+ *              description: Se necesitan permisos de administrador para realizar esa operación.
+ */
+
+router.put('/suspend', adminAuthentication, async (req, res) => 
+{
+    const {email} = req.body
+    const {success, message} = await suspendUser(email)
+
+    if(success)
+    {
+        res.status(201).send('The user has been ' + message) 
+    }  
+    else
+    {
+        res.status(500).send('Could not suspend user.')
     }
 })
 
@@ -255,6 +291,23 @@ router.post('/registro', tryValidUser, tryRegisteredUser, async (req, res) =>
  *              contrasena: Deivic007
  *              email: olegario.arnedes@nebular.com
  *              telefono: 3735648623
+ */
+
+/**
+ * @swagger
+ * tags:
+ *  name: Productos
+ *  description: Seccion de usuarios
+ * 
+ * components: 
+ *  schemas:
+ *      suspend user:
+ *          type: object
+ *          properties:
+ *              email:
+ *                  type: string
+ *          example:
+ *              email: user@delilahresto.com
  */
 
 module.exports = router;
