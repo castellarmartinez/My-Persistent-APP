@@ -1,35 +1,37 @@
 const Order = require('../models/order')
+const Payment = require('../models/payment-method')
 const Product = require('../models/product')
 
-
-exports.addOrder = async (productId, user, thisOrder) =>
+exports.addOrder = async (ID, user, thisOrder) =>
 {
-    const {quantity, state, payment} = thisOrder
-    const thisProduct = await Product.findById(productId)
-
-    const newOrder = 
-    {
-        products:
-        [
-            {
-                product: productId,
-                quantity
-            }
-        ],
-
-        paymentMethod: payment,
-
-        total: thisProduct.price * quantity,
-
-        state,
-
-        owner: user._id
-    }
-
-    const order = new Order(newOrder)
     // return true
     try
     {
+        const {quantity, state, payment} = thisOrder
+        const thisProduct = await Product.findOne({ID})
+        const thisPayment = await Payment.findOne({option: payment})
+
+        const newOrder = 
+        {
+            products:
+            [
+                {
+                    product: thisProduct._id,
+                    quantity
+                }
+            ],
+
+            paymentMethod: thisPayment._id,
+
+            total: thisProduct.price * quantity,
+
+            state,
+
+            owner: user._id
+        }
+
+        const order = new Order(newOrder)
+
         return await order.save()
     }
     catch(error)

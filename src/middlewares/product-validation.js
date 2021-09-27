@@ -2,7 +2,7 @@ const Joi = require('joi')
 const Product = require('../models/product')
 
 const ProductSchema = Joi.object({
-    _id: 
+    ID: 
         Joi.string()
         .pattern(new RegExp(/^[DR]{2}\d/))
         .min(3)
@@ -26,12 +26,13 @@ const ProductSchema = Joi.object({
 const tryValidProduct = async (req, res, next) => 
 {
     const newProduct = req.body
-    const _id = req.params.id
+    const ID = req.params.id
+
     const product = 
     {
-        _id,
-        name:newProduct.name,
-        price:newProduct.price
+        ID,
+        name: newProduct.name,
+        price: newProduct.price
     }
     
     try
@@ -42,9 +43,8 @@ const tryValidProduct = async (req, res, next) =>
     }
     catch(error)
     {
-        if(error.message.includes('"_id"'))
+        if(error.message.includes('"ID"'))
         {
-            console.log(_id)
             res.status(300).send('The products ID must start with "DR" followed' 
             + ' by at least one number.')
         }
@@ -59,18 +59,19 @@ const tryValidProduct = async (req, res, next) =>
         }
         else
         {
-            res.status(300).send('The fields you are trying to add are not allowed.')
+            // res.status(300).send('The fields you are trying to add are not allowed.')
+            res.status(300).send(error.message)
         }
     }
 }
 
 const tryRegisteredProduct = async (req, res, next) => 
 {
-    const _id =  req.params.id;
+    const ID =  req.params.id;
 
     try
     {
-        const exist = await Product.findById(_id)
+        const exist = await Product.findOne({ID})
 
         if(exist)
         {
@@ -89,11 +90,11 @@ const tryRegisteredProduct = async (req, res, next) =>
 
 const tryProductExist = async (req, res, next) => 
 {
-    const _id =  req.params.id;
+    const ID =  req.params.id;
 
     try
     {
-        const exist = await Product.findById(_id)
+        const exist = await Product.findOne({ID})
 
         if(!exist)
         {

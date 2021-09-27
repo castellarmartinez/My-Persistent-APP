@@ -6,13 +6,15 @@ const OrderSchema = Joi.object(
 {
     payment: 
         Joi.number()
-        .min(1),
+        .min(1)
+        .required(),
         // .max(32)
         // .required(),
     quantity:
         Joi.number()
         .min(1)
         .required(),
+
     state:
         Joi.string().
         valid('open', 'closed').
@@ -126,14 +128,15 @@ const tryOpenOrder = async (req, res, next) =>
     const userOrders = await Order.find({owner: user._id})
     const hasOpenOrder = userOrders.some((order) => order.state === 'open')
 
-    if(userOrders.length > 0 && !hasOpenOrder)
+    if(userOrders.length > 0 && hasOpenOrder)
     {
         res.status(401).send('You can\'t have more than one open order.\n' +
         'Close or cancel that order to be able to create another order.')
     }
-    
-    // console.log(userOrders.length, hasOpenOrder)
-    next()
+    else
+    {
+        next()
+    }
 }
 
 const tryValidOrder = async (req, res, next) => 
@@ -157,17 +160,17 @@ const tryValidOrder = async (req, res, next) =>
     }
     catch(error)
     {
-        if(error.message.includes("payment"))
+        if(error.message.includes('"payment"'))
         {
             res.status(401).send('You need to use an existing ' +
             'payment method (payment).')
         }
-        else if(error.message.includes("state"))
+        else if(error.message.includes('"state"'))
         {
             res.status(401).send('Only "open" and "closed" are valid states' +
             ' for new orders.')
         }
-        else if(error.message.includes("quantity"))
+        else if(error.message.includes('"quantity"'))
         {
             res.status(401).send('The product quantity must be greater than 0.')
         }

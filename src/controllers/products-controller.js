@@ -1,8 +1,8 @@
 const Product = require('../models/product')
 
-exports.addProduct = async ({name, price}, _id) =>
+exports.addProduct = async ({name, price}, ID) =>
 {
-    const product = new Product({_id, name, price})
+    const product = new Product({ID, name, price})
 
     try
     {
@@ -22,8 +22,8 @@ exports.getProducts = async () =>
 
         const products = result.map((element) => 
         {
-            const {_id:id, name, price} = element
-            return {id, name, price}
+            const {ID, name, price} = element
+            return {ID, name, price}
         })
 
         return products
@@ -34,11 +34,11 @@ exports.getProducts = async () =>
     }
 }
 
-exports.updateProduct = async (_id, update) =>
+exports.updateProduct = async (ID, update) =>
 {
     try
     {
-        const product = await Product.findByIdAndUpdate(_id, update)
+        const product = await Product.findByIdAndUpdate({ID}, update)
 
         return product
     }
@@ -48,11 +48,11 @@ exports.updateProduct = async (_id, update) =>
     }
 }
 
-exports.deleteProduct = async (_id) =>
+exports.deleteProduct = async (ID) =>
 {
     try
     {
-        const product = await Product.findByIdAndDelete(_id)
+        const product = await Product.findOneAndDelete({ID})
 
         return product
     }

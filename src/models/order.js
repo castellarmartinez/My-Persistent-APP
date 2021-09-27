@@ -7,8 +7,7 @@ const Order = mongoose.model('Order',
         {
             product: 
             {
-                // type: mongoose.Schema.Types.ObjectId,
-                type: String,
+                type: mongoose.Schema.Types.ObjectId,
                 required: true,
                 ref: 'Product'
             },
@@ -34,7 +33,7 @@ const Order = mongoose.model('Order',
         
     paymentMethod:
     {
-        type: Number,
+        type: mongoose.Schema.Types.ObjectId,
         required: true,
         ref: 'Payment'
     },

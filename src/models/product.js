@@ -1,7 +1,13 @@
 const mongoose = require('mongoose')
 
 const Product = mongoose.model('Product',
-{
+{ 
+    ID:
+    {
+        type: String,
+        required: true
+    },
+
     name:
     {
         type: String,
@@ -13,12 +19,6 @@ const Product = mongoose.model('Product',
         type: String,
         required: true
     },
-
-    _id:
-    {
-        type: String,
-        required: true
-    }
 })
 
 module.exports = Product

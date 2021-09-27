@@ -39,8 +39,8 @@ const router = express.Router()
  tryValidProduct, async (req, res) => 
  {
      const newProduct = req.body
-     const _id = req.params.id
-     const success = await addProduct(newProduct, _id)
+     const ID = req.params.id
+     const success = await addProduct(newProduct, ID)
  
      if(success)
      {
@@ -115,8 +115,8 @@ router.put('/modificar/:id/', adminAuthentication,
 tryProductExist, tryValidProduct, async (req, res) => 
 {
     const update = req.body
-    const _id = req.params.id
-    const success = await updateProduct(_id, update)
+    const ID = req.params.id
+    const success = await updateProduct(ID, update)
 
     if(success)
     {
@@ -160,8 +160,8 @@ tryProductExist, tryValidProduct, async (req, res) =>
 router.delete('/eliminar/:id/',  adminAuthentication, tryProductExist, 
 async (req, res) => 
 {
-    const _id = req.params.id
-    const success = await deleteProduct(_id)
+    const ID = req.params.id
+    const success = await deleteProduct(ID)
 
     if(success)
     {

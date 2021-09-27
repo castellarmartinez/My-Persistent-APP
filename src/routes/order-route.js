@@ -51,10 +51,10 @@ router.post('/nuevo/:id/', customerAuthentication, tryProductExist,
 tryOpenOrder, tryValidOrder, async (req, res) => 
 {
     const thisOrder = req.body
-    const productId = req.params.id
+    const ID = req.params.id
     const user = req.user
 
-    const success = await addOrder(productId, user, thisOrder)
+    const success = await addOrder(ID, user, thisOrder)
 
     if(success)
     {
