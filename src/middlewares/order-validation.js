@@ -23,6 +23,15 @@ const OrderSchema = Joi.object(
 
 // Funciones usadas para crear los middlewares
 
+async function openOrder(user)
+{
+    const userOrders = await Order.find({owner: user._id})
+    const hasOpenOrder = userOrders.some((order) => order.state === 'open')
+    const open = userOrders.length > 0 && hasOpenOrder
+
+    return open
+}
+
 function datosValidos(datosIngresados){
     const {unidades, direccion, pago, estado} = datosIngresados;
     const numeroDeParametros = Object.keys(datosIngresados).length;
@@ -125,10 +134,8 @@ function eliminarValido(pedido, producto){
 const tryOpenOrder = async (req, res, next) => 
 {
     const user = req.user
-    const userOrders = await Order.find({owner: user._id})
-    const hasOpenOrder = userOrders.some((order) => order.state === 'open')
 
-    if(userOrders.length > 0 && hasOpenOrder)
+    if(openOrder(user))
     {
         res.status(401).send('You can\'t have more than one open order.\n' +
         'Close or cancel that order to be able to create another order.')
@@ -136,6 +143,20 @@ const tryOpenOrder = async (req, res, next) =>
     else
     {
         next()
+    }
+}
+
+const tryEditOrder = (req, res, next) => 
+{
+    const user = req.user
+
+    if(openOrder(user))
+    {
+        next()
+    }
+    else
+    {
+        res.status(403).send('You don\'t have any open order you can edit.')
     }
 }
 
@@ -197,14 +218,30 @@ const tryMadeOrders = async (req, res, next) =>
     }
 }
 
-const puedeEditarPedido = (req, res, next) => {
-    const usuario = req.auth.user;
+const adicionValida = (req, res, next) => 
+{
+    const {unidades} = req.query;
 
-    if(pedidoAbierto(usuario)){
+    if(unidadesEnteroMayorACero(unidades)){
         next()
     }
     else{
-        res.status(403).send('No tiene ningún pedido abierto (nuevo) que pueda modificar.')
+        res.status(400).send('La unidades a agregar deben ser mayor a cero.');
+    }
+}
+
+const tryValidAddition = (req, res, next) => 
+{
+    const {unidades} = req.query;
+    const validQuantity = unidades % 1 === 0 && unidades > 0
+
+    if(validQuantity)
+    {
+        next()
+    }
+    else
+    {
+        res.status(400).send('The units to add must be greater than 0.');
     }
 }
 
@@ -243,16 +280,7 @@ const ordenExiste = (req, res, next) => {
     }
 }
 
-const adicionValida = (req, res, next) => {
-    const {unidades} = req.query;
 
-    if(unidadesEnteroMayorACero(unidades)){
-        next()
-    }
-    else{
-        res.status(400).send('La unidades a agregar deben ser mayor a cero.');
-    }
-}
 
 const eliminacionValida = (req, res, next) => {
     const idProducto = req.params.id;
@@ -284,4 +312,5 @@ const direccionValida = (req, res, next) => {
     }
 }
 
-module.exports = {tryOpenOrder, tryValidOrder, tryMadeOrders}
+module.exports = {tryOpenOrder, tryValidOrder, tryMadeOrders, 
+    tryEditOrder, tryValidAddition}

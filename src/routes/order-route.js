@@ -1,7 +1,9 @@
 const express = require('express');
-const { addOrder, getOrders, getOrdersByUser } = require('../controllers/orders-controller');
+const { addOrder, getOrders, getOrdersByUser, addProductToOrder } = 
+require('../controllers/orders-controller');
 const { customerAuthentication, adminAuthentication } = require('../middlewares/auth');
-const { tryOpenOrder, tryValidOrder, tryMadeOrders } = require('../middlewares/order-validation');
+const { tryOpenOrder, tryValidOrder, tryMadeOrders, tryEditOrder, 
+    tryValidAddition } = require('../middlewares/order-validation');
 const { tryProductExist } = require('../middlewares/product-validation');
 
 const router = express.Router();
@@ -108,13 +110,6 @@ router.get('/lista', adminAuthentication, async (req, res) =>
  *              description: Necesita estar logeado como cliente para realizar esa accion.
  */
 
-// router.get('/historial', autenticacionCliente, hizoPedidos, (req, res) => {
-//     const {user} = req.auth;
-//     const pedidos = obtenerPedidosUsuario(user);
-    
-//     res.json(pedidos);
-// })
-
 router.get('/historial', customerAuthentication, tryMadeOrders, async (req, res) => 
 {
     const orders = req.orders
@@ -130,28 +125,28 @@ router.get('/historial', customerAuthentication, tryMadeOrders, async (req, res)
     }
 })
 
-// /**
-//  * @swagger
-//  * /pedidos/agregarproducto/{productoId}:
-//  *  put:
-//  *      tags: [Pedidos]
-//  *      summary: Agregar un producto nuevo al pedido. 
-//  *      description: Permite añadir un producto al pedido abierto.
-//  *      parameters:
-//  *      -   name: "productoId"
-//  *          in: "path"
-//  *          required: true     
-//  *      -   name: "unidades"
-//  *          in: "query"
-//  *          required: true     
-//  *      responses:
-//  *          200:
-//  *              description: Operación exitosa.
-//  *          400:
-//  *              description: El pedido no se pudo procesar por información errónea.
-//  *          401:
-//  *              description: Necesita estar logeado como cliente para realizar esa accion.
-//  */
+/**
+ * @swagger
+ * /pedidos/agregarproducto/{productoId}:
+ *  put:
+ *      tags: [Pedidos]
+ *      summary: Agregar un producto nuevo al pedido. 
+ *      description: Permite añadir un producto al pedido abierto.
+ *      parameters:
+ *      -   name: "productoId"
+ *          in: "path"
+ *          required: true     
+ *      -   name: "unidades"
+ *          in: "query"
+ *          required: true     
+ *      responses:
+ *          200:
+ *              description: Operación exitosa.
+ *          400:
+ *              description: El pedido no se pudo procesar por información errónea.
+ *          401:
+ *              description: Necesita estar logeado como cliente para realizar esa accion.
+ */
 
 // // router.put('/agregarproducto/:id/', autenticacionCliente, puedeEditarPedido, productoExiste, 
 // // adicionValida, (req, res) => {
@@ -164,22 +159,23 @@ router.get('/historial', customerAuthentication, tryMadeOrders, async (req, res)
 // //     res.send('El producto se agregó al pedido.');
 // // })
 
-// router.put('/agregarproducto/:id/', async (req, res) => 
-// {
-//     const order = req.query
-//     const _id = req.params.id
-//     const {user} = req.auth
-//     const success = await addProductToOrder(_id, order, user)
+router.put('/agregarproducto/:id/', customerAuthentication, tryEditOrder, 
+tryProductExist, tryValidAddition, async (req, res) => 
+{
+    const {unidades: quantity} = req.query
+    const product = req.product
+    const user = req.user
+    const success = await addProductToOrder(product, quantity, user)
     
-//     if(success)
-//     {
-//         res.status(201).send('The product has been added to the order.')
-//     }
-//     else
-//     {
-//         res.status(500).send('Could not add the product.')
-//     }
-// })
+    if(success)
+    {
+        res.status(201).send('The product has been added to the order.')
+    }
+    else
+    {
+        res.status(500).send('Could not add the product.')
+    }
+})
 
 // /**
 //  * @swagger

@@ -55,9 +55,9 @@ exports.getOrders = async () =>
 
             for(let j = 0; j < products.length; j++)
             {
-                const {ID, name, price} = await Product.findById(products[i].product)
-                const quantity = products[i].quantity
-                productList[i] = {ID, name, price, quantity}
+                const {ID, name, price} = await Product.findById(products[j].product)
+                const quantity = products[j].quantity
+                productList[j] = {ID, name, price, quantity}
             }
 
             const {method} = await Payment.findById(paymentMethod)
@@ -86,9 +86,9 @@ exports.getOrdersByUser = async (orders) =>
 
             for(let j = 0; j < products.length; j++)
             {
-                const {ID, name, price} = await Product.findById(products[i].product)
-                const quantity = products[i].quantity
-                productList[i] = {ID, name, price, quantity}
+                const {ID, name, price} = await Product.findById(products[j].product)
+                const quantity = products[j].quantity
+                productList[j] = {ID, name, price, quantity}
             }
 
             const {method} = await Payment.findById(paymentMethod)
@@ -131,30 +131,18 @@ exports.deleteProduct = async (_id) =>
     }
 }
 
-
-async function ordersInfo(result)
+exports.addProductToOrder = async (product, quantity, user) =>
 {
-    let orders
-    try{
-        orders = result.map(async (element) => 
-        {
-            const {products, total, paymentMethod, state, owner} = element
-    
-            // const productsInfo = await products.map(async (product) => 
-            // {
-            //     const {ID, name, price} = await Product.findById(product.product)
-            //     return {ID, name, price}
-            // })
-    
-            const {method} = await Payment.findById(paymentMethod)
-            const {name, email} = await User.findById(owner)
-            return {total, method, state, name, email}
-        })
-    }catch(error)
+    try
     {
+        const order = await Order.findOne({owner: user._id, state: "open"})
+        order.products.push({product: product._id, quantity})
+        order.total += quantity * product.price
 
+        return await order.save()
     }
-    
-
-    return orders
+    catch(error)
+    {
+        return console.log(error.message)
+    }
 }
