@@ -73,21 +73,29 @@ exports.getOrders = async () =>
     }
 }
 
-exports.getOrdersByUser = async () =>
+exports.getOrdersByUser = async (orders) =>
 {
     try
     {
-        const result = await Order.findById({})
+        let ordersList = []
 
-        const orders = result.map((element) => 
+        for(let i = 0; i < orders.length; i++)
         {
-            const {name, usermane, email, phone, address,
-            description, price, method, order, state} = element
-            return {name, usermane, email, phone, address,
-                description, price, method, order, state}
-        })
+            const {products, total, paymentMethod, state} = orders[i]
+            let productList = []
 
-        return orders
+            for(let j = 0; j < products.length; j++)
+            {
+                const {ID, name, price} = await Product.findById(products[i].product)
+                const quantity = products[i].quantity
+                productList[i] = {ID, name, price, quantity}
+            }
+
+            const {method} = await Payment.findById(paymentMethod)
+            ordersList[i] = {products:productList, total, paymentMethod:method, state}
+        }
+
+        return ordersList
     }
     catch(error)
     {

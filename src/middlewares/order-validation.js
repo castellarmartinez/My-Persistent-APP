@@ -181,6 +181,21 @@ const tryValidOrder = async (req, res, next) =>
     }
 }
 
+const tryMadeOrders = async (req, res, next) => 
+{
+    const user = req.user
+    const orders = await Order.find({owner: user._id})
+
+    if(orders.length > 0)
+    {
+        req.orders = orders
+        next()
+    }
+    else
+    {
+        res.status(403).send('You have not ordered anything.')
+    }
+}
 
 const puedeEditarPedido = (req, res, next) => {
     const usuario = req.auth.user;
@@ -228,18 +243,6 @@ const ordenExiste = (req, res, next) => {
     }
 }
 
-const hizoPedidos = (req, res, next) => {
-    const usuario = req.auth.user;
-    const pedidos = obtenerPedidos().filter((element) => (element.usuario === usuario));
-
-    if(pedidos.length > 0){
-        next()
-    }
-    else{
-        res.status(403).send('Usted no ha realizado ningún pedido.')
-    }
-}
-
 const adicionValida = (req, res, next) => {
     const {unidades} = req.query;
 
@@ -281,4 +284,4 @@ const direccionValida = (req, res, next) => {
     }
 }
 
-module.exports = {tryOpenOrder, tryValidOrder}
+module.exports = {tryOpenOrder, tryValidOrder, tryMadeOrders}

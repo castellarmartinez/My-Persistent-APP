@@ -1,7 +1,7 @@
 const express = require('express');
-const { addOrder, getOrders } = require('../controllers/orders-controller');
+const { addOrder, getOrders, getOrdersByUser } = require('../controllers/orders-controller');
 const { customerAuthentication, adminAuthentication } = require('../middlewares/auth');
-const { tryOpenOrder, tryValidOrder } = require('../middlewares/order-validation');
+const { tryOpenOrder, tryValidOrder, tryMadeOrders } = require('../middlewares/order-validation');
 const { tryProductExist } = require('../middlewares/product-validation');
 
 const router = express.Router();
@@ -73,11 +73,6 @@ tryOpenOrder, tryValidOrder, async (req, res) =>
  *              description: Se necesita permiso para realizar esa accion.
  */
 
-
-// router.get('/lista', autenticacionAdmin, (req, res) => {
-//     res.send(obtenerPedidos())
-// })
-
 router.get('/lista', adminAuthentication, async (req, res) => 
 {
     const orders = await getOrders()
@@ -92,48 +87,48 @@ router.get('/lista', adminAuthentication, async (req, res) =>
     }
 })
 
-// /**
-//  * @swagger
-//  * /pedidos/historial:
-//  *  get:
-//  *      tags: [Pedidos]
-//  *      summary: Obtener el historial de pedidos hecho por un cliente.
-//  *      description: Devuelve la lista de pedidos.
-//  *      parameters: []
-//  *      responses:
-//  *          200:
-//  *              description: Operación exitosa.
-//  *              content:
-//  *                  application/json:
-//  *                      schema:
-//  *                          type: array
-//  *                          items:
-//  *                              $ref: '#/components/schemas/lista pedidos'
-//  *          401:
-//  *              description: Necesita estar logeado como cliente para realizar esa accion.
-//  */
+/**
+ * @swagger
+ * /pedidos/historial:
+ *  get:
+ *      tags: [Pedidos]
+ *      summary: Obtener el historial de pedidos hecho por un cliente.
+ *      description: Devuelve la lista de pedidos.
+ *      parameters: []
+ *      responses:
+ *          200:
+ *              description: Operación exitosa.
+ *              content:
+ *                  application/json:
+ *                      schema:
+ *                          type: array
+ *                          items:
+ *                              $ref: '#/components/schemas/lista pedidos'
+ *          401:
+ *              description: Necesita estar logeado como cliente para realizar esa accion.
+ */
 
-// // router.get('/historial', autenticacionCliente, hizoPedidos, (req, res) => {
-// //     const {user} = req.auth;
-// //     const pedidos = obtenerPedidosUsuario(user);
+// router.get('/historial', autenticacionCliente, hizoPedidos, (req, res) => {
+//     const {user} = req.auth;
+//     const pedidos = obtenerPedidosUsuario(user);
     
-// //     res.json(pedidos);
-// // })
-
-// router.get('/historial', async (req, res) => 
-// {
-//     const {user} = req.auth
-//     const orders = await getOrdersByUser(user)
-
-//     if(orders)
-//     {
-//         res.status(201).json(orders)
-//     }
-//     else
-//     {
-//         res.status(500).send('Could not access this user\'s orders.')
-//     }
+//     res.json(pedidos);
 // })
+
+router.get('/historial', customerAuthentication, tryMadeOrders, async (req, res) => 
+{
+    const orders = req.orders
+    const ordersDetails = await getOrdersByUser(orders)
+
+    if(ordersDetails)
+    {
+        res.status(201).json(ordersDetails)
+    }
+    else
+    {
+        res.status(500).send('Could not access this user\'s orders.')
+    }
+})
 
 // /**
 //  * @swagger
