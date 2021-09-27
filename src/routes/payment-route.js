@@ -9,6 +9,43 @@ const router = express.Router();
 
 /**
  * @swagger
+ * /mediosdepago/agregar:
+ *  post:
+ *      tags: [Medios de pago]
+ *      summary: Agregar un medio de pago a la tienda.
+ *      description: Permite agregar un medio de pago a la tienda.
+ *      requestBody:
+ *          required: true
+ *          content:
+ *              application/json:
+ *                  schema:
+ *                      $ref: '#/components/schemas/medio nuevo'
+ *      responses:
+ *          201:
+ *              description: El producto se agregó exitosamentea.
+ *          400:
+ *              description: El medio de no se pudo agregar.
+ *          401:
+ *              description: Se necesita permiso para realizar esa accion.
+ */
+
+ router.post('/agregar', adminAuthentication, tryValidMethod, async (req, res) => 
+ {
+     const method = req.body
+     const success = await addPaymentMethod(method)
+ 
+     if(success)
+     {
+         res.status(201).send('The payment method has been added.')
+     }
+     else
+     {
+         res.status(500).send('Unable to add the payment method.')
+     }
+ })
+
+/**
+ * @swagger
  * /mediosdepago/lista:
  *  get:
  *      tags: [Medios de pago]
@@ -38,42 +75,6 @@ router.get('/lista', userAuthentication, async (req, res) =>
     else
     {
         res.status(500).send('Could not access payment methods.')
-    }
-})
-/**
- * @swagger
- * /mediosdepago/agregar:
- *  post:
- *      tags: [Medios de pago]
- *      summary: Agregar un medio de pago a la tienda.
- *      description: Permite agregar un medio de pago a la tienda.
- *      requestBody:
- *          required: true
- *          content:
- *              application/json:
- *                  schema:
- *                      $ref: '#/components/schemas/medio nuevo'
- *      responses:
- *          201:
- *              description: El producto se agregó exitosamentea.
- *          400:
- *              description: El medio de no se pudo agregar.
- *          401:
- *              description: Se necesita permiso para realizar esa accion.
- */
-
-router.post('/agregar', adminAuthentication, tryValidMethod, async (req, res) => 
-{
-    const method = req.body
-    const success = await addPaymentMethod(method)
-
-    if(success)
-    {
-        res.status(201).send('The payment method has been added.')
-    }
-    else
-    {
-        res.status(500).send('Unable to add the payment method.')
     }
 })
 

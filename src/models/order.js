@@ -2,17 +2,55 @@ const mongoose = require('mongoose')
 
 const Order = mongoose.model('Order',
 {
-    method:
+    products: 
+    [
+        {
+            product: 
+            {
+                // type: mongoose.Schema.Types.ObjectId,
+                type: String,
+                required: true,
+                ref: 'Product'
+            },
+            
+            quantity:
+            {
+                type: Number,
+                required: true
+            }
+        }
+    ],
+    
+    total:
+    {
+        type: Number,
+        required: true
+    },
+    
+    // address:
+    // {
+        
+        // }, 
+        
+    paymentMethod:
+    {
+        type: Number,
+        required: true,
+        ref: 'Payment'
+    },
+    
+    state:
     {
         type: String,
         required: true
     },
-
-    _id:
+    
+    owner:
     {
-        type: Number,
-        required: true
-    }
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+        ref: 'User'
+    },
 })
 
 module.exports = Order

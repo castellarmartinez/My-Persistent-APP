@@ -87,7 +87,7 @@ const tryRegisteredProduct = async (req, res, next) =>
     }
 }
 
-const tryProductUpdate = async (req, res, next) => 
+const tryProductExist = async (req, res, next) => 
 {
     const _id =  req.params.id;
 
@@ -97,8 +97,8 @@ const tryProductUpdate = async (req, res, next) =>
 
         if(!exist)
         {
-            res.status(400).send('The product you are trying to update' + 
-            '/delete does not exist.')
+            res.status(400).send('The product you are trying to access' + 
+            ' does not exist.')
         }
         else
         {
@@ -111,4 +111,4 @@ const tryProductUpdate = async (req, res, next) =>
     }
 }
 
-module.exports = {tryRegisteredProduct, tryValidProduct, tryProductUpdate}
+module.exports = {tryRegisteredProduct, tryValidProduct, tryProductExist}

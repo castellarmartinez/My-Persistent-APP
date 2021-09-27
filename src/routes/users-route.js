@@ -9,6 +9,44 @@ const router = express.Router()
 
 /**
  * @swagger
+ * /usuarios/registro:
+ *  post:
+ *      tags: [Usuarios]
+ *      summary: Registrar un nuevo usuario sin privilegios de administrador.
+ *      description: Permite el registro de nuevos usuarios.
+ *      requestBody:
+ *          required: true
+ *          content:
+ *              application/json:
+ *                  schema:
+ *                      $ref: '#/components/schemas/registro'
+ *      responses:
+ *          "200":
+ *              description: Registro exitoso.
+ *          "400":
+ *              description: Los datos de registro no son validos.
+ *          "405":
+ *              description: El username y/o email ya se encuentran registrados.
+ */
+
+ router.post('/registro', tryValidUser, tryRegisteredUser, async (req, res) => 
+ {
+     const newUser = req.body
+     const success = await addUser(newUser)
+ 
+     if(success)
+     {
+         res.status(201).send('Congratulations!\nYour account has been successfully'
+         + ' created.') 
+     }  
+     else
+     {
+         res.status(500).send('Your account could not be created.')
+     }
+ })
+ 
+/**
+ * @swagger
  * /usuarios/login:
  *  post:
  *      tags: [Usuarios]
@@ -106,44 +144,6 @@ router.get('/lista', adminAuthentication, async (req, res) =>
     else
     {
         res.status(500).send('Could not access registered users.')
-    }
-})
-
-/**
- * @swagger
- * /usuarios/registro:
- *  post:
- *      tags: [Usuarios]
- *      summary: Registrar un nuevo usuario sin privilegios de administrador.
- *      description: Permite el registro de nuevos usuarios.
- *      requestBody:
- *          required: true
- *          content:
- *              application/json:
- *                  schema:
- *                      $ref: '#/components/schemas/registro'
- *      responses:
- *          "200":
- *              description: Registro exitoso.
- *          "400":
- *              description: Los datos de registro no son validos.
- *          "405":
- *              description: El username y/o email ya se encuentran registrados.
- */
-
-router.post('/registro', tryValidUser, tryRegisteredUser, async (req, res) => 
-{
-    const newUser = req.body
-    const success = await addUser(newUser)
-
-    if(success)
-    {
-        res.status(201).send('Congratulations!\nYour account has been successfully'
-        + ' created.') 
-    }  
-    else
-    {
-        res.status(500).send('Your account could not be created.')
     }
 })
 

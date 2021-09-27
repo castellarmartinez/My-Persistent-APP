@@ -51,9 +51,8 @@ const updatePaymentMethods = async (option, method) =>
 {    
     try
     {
-        console.log(method, option)
         const methodModified = await Payment.findOneAndUpdate({option}, method)
-        console.log(methodModified)
+
         return methodModified
     }
     catch(error)

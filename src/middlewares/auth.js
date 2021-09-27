@@ -55,6 +55,7 @@ const customerAuthentication = async (req, res, next) =>
         }
         else
         {
+            req.user = user
             next()
         }
     }

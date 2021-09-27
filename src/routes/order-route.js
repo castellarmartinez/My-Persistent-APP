@@ -1,101 +1,10 @@
 const express = require('express');
-// const { obtenerPedidos, generarPedido, agregarPedidos, obtenerEstePedido, modificarEstadoAdmin,
-//     modificarEstadoCliente, obtenerPedidosUsuario, agregarProducto, quitarProducto, 
-//     modificarPago, modificarDireccion} = require('../models/pedidos');
-// const { obtenerEsteProducto } = require('../models/productos');
-// const { obtenerEsteUsuario } = require('../models/usuarios');
-// const { obtenerEsteMedio } = require('../models/mediosPago');
-// const { autenticacionAdmin, autenticacionCliente } = require('../middlewares/autenticacion');
-// const { tienePedidoAbierto, hizoPedidos, 
-//     pedidoValido, puedeEditarPedido, adicionValida, eliminacionValida, direccionValida, 
-//     ordenExiste, estadoValidoAdmin, estadoValidoCliente } = require('../middlewares/comprobacionPedidos');
-// const { productoExiste } = require('../middlewares/comprobacionProductos');
-// const { cambiarValido } = require('../middlewares/comprobacionPago') 
+const { addOrder } = require('../controllers/orders-controller');
+const { customerAuthentication } = require('../middlewares/auth');
+const { tryOpenOrder, tryValidOrder } = require('../middlewares/order-validation');
+const { tryProductExist } = require('../middlewares/product-validation');
 
 const router = express.Router();
-
-/**
- * @swagger
- * /pedidos/lista:
- *  get:
- *      tags: [Pedidos]
- *      summary: Obtener el historial de pedidos de todos los clientes.
- *      description: Devuelve una lista los pedidos.
- *      parameters: []
- *      responses:
- *          200:
- *              description: Operación exitosa.
- *              content:
- *                  application/json:
- *                      schema:
- *                          type: array
- *                          items:
- *                              $ref: '#/components/schemas/lista pedidos'
- *          401:
- *              description: Se necesita permiso para realizar esa accion.
- */
-
-
-// router.get('/lista', autenticacionAdmin, (req, res) => {
-//     res.send(obtenerPedidos())
-// })
-
-router.get('/lista', async (req, res) => 
-{
-    const orders = await getOrders()
-
-    if(orders)
-    {
-        res.status(201).json(orders)
-    }
-    else
-    {
-        res.status(500).send('Could not access orders.')
-    }
-})
-
-/**
- * @swagger
- * /pedidos/historial:
- *  get:
- *      tags: [Pedidos]
- *      summary: Obtener el historial de pedidos hecho por un cliente.
- *      description: Devuelve la lista de pedidos.
- *      parameters: []
- *      responses:
- *          200:
- *              description: Operación exitosa.
- *              content:
- *                  application/json:
- *                      schema:
- *                          type: array
- *                          items:
- *                              $ref: '#/components/schemas/lista pedidos'
- *          401:
- *              description: Necesita estar logeado como cliente para realizar esa accion.
- */
-
-// router.get('/historial', autenticacionCliente, hizoPedidos, (req, res) => {
-//     const {user} = req.auth;
-//     const pedidos = obtenerPedidosUsuario(user);
-    
-//     res.json(pedidos);
-// })
-
-router.get('/historial', async (req, res) => 
-{
-    const {user} = req.auth
-    const orders = await getOrdersByUser(user)
-
-    if(orders)
-    {
-        res.status(201).json(orders)
-    }
-    else
-    {
-        res.status(500).send('Could not access this user\'s orders.')
-    }
-})
 
 /**
  * @swagger
@@ -138,13 +47,14 @@ router.get('/historial', async (req, res) =>
 //     res.send('El pedido se procesó exitosamente.');
 // })
 
-router.post('/nuevo/:id/', async (req, res) => 
+router.post('/nuevo/:id/', customerAuthentication, tryProductExist, 
+tryOpenOrder, tryValidOrder, async (req, res) => 
 {
     const thisOrder = req.body
-    const _id = req.params.id
-    const {user} = req.auth
+    const productId = req.params.id
+    const user = req.user
 
-    const success = await addOrder(_id, user, thisOrder)
+    const success = await addOrder(productId, user, thisOrder)
 
     if(success)
     {
@@ -156,302 +66,384 @@ router.post('/nuevo/:id/', async (req, res) =>
     }
 })
 
-
 /**
  * @swagger
- * /pedidos/agregarproducto/{productoId}:
- *  put:
+ * /pedidos/lista:
+ *  get:
  *      tags: [Pedidos]
- *      summary: Agregar un producto nuevo al pedido. 
- *      description: Permite añadir un producto al pedido abierto.
- *      parameters:
- *      -   name: "productoId"
- *          in: "path"
- *          required: true     
- *      -   name: "unidades"
- *          in: "query"
- *          required: true     
+ *      summary: Obtener el historial de pedidos de todos los clientes.
+ *      description: Devuelve una lista los pedidos.
+ *      parameters: []
  *      responses:
  *          200:
  *              description: Operación exitosa.
- *          400:
- *              description: El pedido no se pudo procesar por información errónea.
- *          401:
- *              description: Necesita estar logeado como cliente para realizar esa accion.
- */
-
-// router.put('/agregarproducto/:id/', autenticacionCliente, puedeEditarPedido, productoExiste, 
-// adicionValida, (req, res) => {
-//     const pedido = req.query;
-//     const id = req.params.id;
-//     const {user} = req.auth;
-//     const producto = obtenerEsteProducto(id);
-//     agregarProducto(producto, user, pedido);
-    
-//     res.send('El producto se agregó al pedido.');
-// })
-
-router.put('/agregarproducto/:id/', async (req, res) => 
-{
-    const order = req.query
-    const _id = req.params.id
-    const {user} = req.auth
-    const success = await addProductToOrder(_id, order, user)
-    
-    if(success)
-    {
-        res.status(201).send('The product has been added to the order.')
-    }
-    else
-    {
-        res.status(500).send('Could not add the product.')
-    }
-})
-
-/**
- * @swagger
- * /pedidos/quitarproducto/{productoId}:
- *  put:
- *      tags: [Pedidos]
- *      summary: Eliminar un producto del pedido. 
- *      description: Permite suprimir un producto del pedido abierto.
- *      parameters:
- *      -   name: "productoId"
- *          in: "path"
- *          required: true     
- *      -   name: "unidades"
- *          in: "query"
- *          required: true     
- *      responses:
- *          200:
- *              description: Operación exitosa.
- *          400:
- *              description: El pedido no se pudo procesar por información errónea.
- *          401:
- *              description: Necesita estar logeado como cliente para realizar esa accion.
- *          405:
- *              description: No hay pedido abierto con el producto.
- */
-
-router.put('/quitarproducto/:id/', autenticacionCliente, puedeEditarPedido, productoExiste, 
-eliminacionValida, (req, res) => {
-    const pedido = req.query;
-    const id = req.params.id;
-    const {user} = req.auth;
-    const producto = obtenerEsteProducto(id);
-    quitarProducto(producto, user, pedido);
-    
-    res.send('El producto se eliminó/redujo del pedido.');
-})
-
-router.put('/quitarproducto/:id/', async (req, res) => 
-{
-    const order = req.body
-    const _id = req.params.id
-    const {user} = req.auth
-    const success = await removeProductFromOrder(_id, order, user)
-    
-    if(success)
-    {
-        res.status(201).send('The product has been added to the order.')
-    }
-    else
-    {
-        res.status(500).send('Could not add the product.')
-    }
-})
-
-/**
- * @swagger
- * /pedidos/cambiarpago:
- *  put:
- *      tags: [Pedidos]
- *      summary: Cambiar el medio de pago. 
- *      description: Permite al cliente cambiar el medio de pago del pedido abierto.
- *      parameters:
- *      -   name: "opcion"
- *          in: "query"
- *          required: true      
- *      responses:
- *          200:
- *              description: Operación exitosa.
- *          400:
- *              description: El pedido no se pudo procesar por información errónea.
- *          401:
- *              description: Necesita estar logeado como cliente para realizar esa accion.
- */
-
-// router.put('/cambiarpago', autenticacionCliente, puedeEditarPedido, cambiarValido, (req, res) => {
-//     const {opcion} = req.query;
-//     const {user} = req.auth;
-//     const pago = obtenerEsteMedio(opcion)
-//     modificarPago(user, pago);
-//     obtenerEstePedido(user);
-    
-//     res.send('El medio de pago se cambió exitosamente');
-// })
-
-router.put('/cambiarpago', async (req, res) => 
-{
-    const option = req.query
-    const {user} = req.auth
-    const success = await updatePaymentInOrder(option, user)
-    
-    if(success)
-    {
-        res.status(201).send('The payment method has been changed.')
-    }
-    else
-    {
-        res.status(500).send('Could not change the payment method.')
-    }
-})
-
-/**
- * @swagger
- * /pedidos/cambiardireccion:
- *  put:
- *      tags: [Pedidos]
- *      summary: Cambiar la dirección de entrega de un pedido. 
- *      description: Permite cambiar la dirección del pedido abierto.
- *      parameters:
- *      -   name: "direccion"
- *          in: "query"
- *          required: true      
- *      responses:
- *          200:
- *              description: Operación exitosa.
- *          400:
- *              description: El pedido no se pudo procesar por información errónea.
- *          401:
- *              description: Necesita estar logeado como cliente para realizar esa accion.
- */
-
-// router.put('/cambiardireccion', autenticacionCliente, puedeEditarPedido, direccionValida, (req, res) => {
-//     const {direccion} = req.query;
-//     const {user} = req.auth;
-//     modificarDireccion(user, direccion);
-    
-//     res.send('La dirección se cambió exitosamente.');
-// })
-
-router.put('/cambiardireccion', async (req, res) => 
-{
-    const {direccion} = req.query
-    const {user} = req.auth
-    const success = await updateAddress(direccion, user)
-    
-    if(success)
-    {
-        res.status(201).send('The address has been changed.')
-    }
-    else
-    {
-        res.status(500).send('Could not change the address.')
-    }
-})
-
-/**
- * @swagger
- * /pedidos/modificarestado/cliente:
- *  put:
- *      tags: [Pedidos]
- *      summary: Cambiar los estados de los pedidos siendo cliente. 
- *      description: Permite a los clientes cambiar el estado de sus pedidos.
- *      parameters:
- *      -   name: "estado"
- *          in: "query"
- *          required: true
- *          type: "array"
- *          items:
- *          schema:
- *              type: "string"
- *              enum:
- *              -   "confirmado"
- *              -   "cancelado"        
- *      responses:
- *          200:
- *              description: Operación exitosa.
+ *              content:
+ *                  application/json:
+ *                      schema:
+ *                          type: array
+ *                          items:
+ *                              $ref: '#/components/schemas/lista pedidos'
  *          401:
  *              description: Se necesita permiso para realizar esa accion.
  */
 
-//  router.put('/modificarestado/cliente', autenticacionCliente, puedeEditarPedido, estadoValidoCliente, (req, res) => {
-//     const {estado} = req.query;
+
+// router.get('/lista', autenticacionAdmin, (req, res) => {
+//     res.send(obtenerPedidos())
+// })
+
+// router.get('/lista', async (req, res) => 
+// {
+//     const orders = await getOrders()
+
+//     if(orders)
+//     {
+//         res.status(201).json(orders)
+//     }
+//     else
+//     {
+//         res.status(500).send('Could not access orders.')
+//     }
+// })
+
+// /**
+//  * @swagger
+//  * /pedidos/historial:
+//  *  get:
+//  *      tags: [Pedidos]
+//  *      summary: Obtener el historial de pedidos hecho por un cliente.
+//  *      description: Devuelve la lista de pedidos.
+//  *      parameters: []
+//  *      responses:
+//  *          200:
+//  *              description: Operación exitosa.
+//  *              content:
+//  *                  application/json:
+//  *                      schema:
+//  *                          type: array
+//  *                          items:
+//  *                              $ref: '#/components/schemas/lista pedidos'
+//  *          401:
+//  *              description: Necesita estar logeado como cliente para realizar esa accion.
+//  */
+
+// // router.get('/historial', autenticacionCliente, hizoPedidos, (req, res) => {
+// //     const {user} = req.auth;
+// //     const pedidos = obtenerPedidosUsuario(user);
+    
+// //     res.json(pedidos);
+// // })
+
+// router.get('/historial', async (req, res) => 
+// {
+//     const {user} = req.auth
+//     const orders = await getOrdersByUser(user)
+
+//     if(orders)
+//     {
+//         res.status(201).json(orders)
+//     }
+//     else
+//     {
+//         res.status(500).send('Could not access this user\'s orders.')
+//     }
+// })
+
+// /**
+//  * @swagger
+//  * /pedidos/agregarproducto/{productoId}:
+//  *  put:
+//  *      tags: [Pedidos]
+//  *      summary: Agregar un producto nuevo al pedido. 
+//  *      description: Permite añadir un producto al pedido abierto.
+//  *      parameters:
+//  *      -   name: "productoId"
+//  *          in: "path"
+//  *          required: true     
+//  *      -   name: "unidades"
+//  *          in: "query"
+//  *          required: true     
+//  *      responses:
+//  *          200:
+//  *              description: Operación exitosa.
+//  *          400:
+//  *              description: El pedido no se pudo procesar por información errónea.
+//  *          401:
+//  *              description: Necesita estar logeado como cliente para realizar esa accion.
+//  */
+
+// // router.put('/agregarproducto/:id/', autenticacionCliente, puedeEditarPedido, productoExiste, 
+// // adicionValida, (req, res) => {
+// //     const pedido = req.query;
+// //     const id = req.params.id;
+// //     const {user} = req.auth;
+// //     const producto = obtenerEsteProducto(id);
+// //     agregarProducto(producto, user, pedido);
+    
+// //     res.send('El producto se agregó al pedido.');
+// // })
+
+// router.put('/agregarproducto/:id/', async (req, res) => 
+// {
+//     const order = req.query
+//     const _id = req.params.id
+//     const {user} = req.auth
+//     const success = await addProductToOrder(_id, order, user)
+    
+//     if(success)
+//     {
+//         res.status(201).send('The product has been added to the order.')
+//     }
+//     else
+//     {
+//         res.status(500).send('Could not add the product.')
+//     }
+// })
+
+// /**
+//  * @swagger
+//  * /pedidos/quitarproducto/{productoId}:
+//  *  put:
+//  *      tags: [Pedidos]
+//  *      summary: Eliminar un producto del pedido. 
+//  *      description: Permite suprimir un producto del pedido abierto.
+//  *      parameters:
+//  *      -   name: "productoId"
+//  *          in: "path"
+//  *          required: true     
+//  *      -   name: "unidades"
+//  *          in: "query"
+//  *          required: true     
+//  *      responses:
+//  *          200:
+//  *              description: Operación exitosa.
+//  *          400:
+//  *              description: El pedido no se pudo procesar por información errónea.
+//  *          401:
+//  *              description: Necesita estar logeado como cliente para realizar esa accion.
+//  *          405:
+//  *              description: No hay pedido abierto con el producto.
+//  */
+
+// router.put('/quitarproducto/:id/', autenticacionCliente, puedeEditarPedido, productoExiste, 
+// eliminacionValida, (req, res) => {
+//     const pedido = req.query;
+//     const id = req.params.id;
 //     const {user} = req.auth;
-//     modificarEstadoCliente(user, estado);
-
-//     res.send('El estado del pedido se modificó exitosamente.')
+//     const producto = obtenerEsteProducto(id);
+//     quitarProducto(producto, user, pedido);
+    
+//     res.send('El producto se eliminó/redujo del pedido.');
 // })
 
-router.put('/modificarestado/cliente', async (req, res) => 
-{
-    const {estado} = req.query
-    const {user} = req.auth
-    const success = await updateOrderStateClient(estado, user)
+// router.put('/quitarproducto/:id/', async (req, res) => 
+// {
+//     const order = req.body
+//     const _id = req.params.id
+//     const {user} = req.auth
+//     const success = await removeProductFromOrder(_id, order, user)
     
-    if(success)
-    {
-        res.status(201).send('The order\'s state has been changed.')
-    }
-    else
-    {
-        res.status(500).send('Could not change the order\'s state.')
-    }
-})
-
-/**
- * @swagger
- * /pedidos/modificarestado/admin:
- *  put:
- *      tags: [Pedidos]
- *      summary: Cambiar los estados de los pedidos siendo administrador. 
- *      description: Permite a los administradores cambiar el estado de los pedidos.
- *      parameters:
- *      -   name: "ordenId"
- *          in: "query"
- *          required: true
- *          type: "string"
- *      -   name: "estado"
- *          in: "query"
- *          required: true
- *          type: "array"
- *          items:
- *          schema:
- *              type: "string"
- *              enum:
- *              -   "preparando"
- *              -   "enviando"
- *              -   "cancelado"
- *              -   "entregado"         
- *      responses:
- *          200:
- *              description: Operación exitosa.
- *          401:
- *              description: Necesitas estar logeado para realizar esa accion.
- */
-
-// router.put('/modificarestado/admin', autenticacionAdmin, ordenExiste, estadoValidoAdmin, (req, res) => {
-//     const {ordenId, estado} = req.query;
-//     modificarEstadoAdmin(ordenId, estado);
-
-//     res.send('El estado del pedido se modificó exitosamente.')
+//     if(success)
+//     {
+//         res.status(201).send('The product has been added to the order.')
+//     }
+//     else
+//     {
+//         res.status(500).send('Could not add the product.')
+//     }
 // })
 
-router.put('/modificarestado/admin', async (req, res) => 
-{
-    const {ordenId, estado} = req.query
-    const success = await updateOrderStateClient(estado, ordenId)
+// /**
+//  * @swagger
+//  * /pedidos/cambiarpago:
+//  *  put:
+//  *      tags: [Pedidos]
+//  *      summary: Cambiar el medio de pago. 
+//  *      description: Permite al cliente cambiar el medio de pago del pedido abierto.
+//  *      parameters:
+//  *      -   name: "opcion"
+//  *          in: "query"
+//  *          required: true      
+//  *      responses:
+//  *          200:
+//  *              description: Operación exitosa.
+//  *          400:
+//  *              description: El pedido no se pudo procesar por información errónea.
+//  *          401:
+//  *              description: Necesita estar logeado como cliente para realizar esa accion.
+//  */
+
+// // router.put('/cambiarpago', autenticacionCliente, puedeEditarPedido, cambiarValido, (req, res) => {
+// //     const {opcion} = req.query;
+// //     const {user} = req.auth;
+// //     const pago = obtenerEsteMedio(opcion)
+// //     modificarPago(user, pago);
+// //     obtenerEstePedido(user);
     
-    if(success)
-    {
-        res.status(201).send('The order\'s state has been changed.')
-    }
-    else
-    {
-        res.status(500).send('Could not change the order\'s state.')
-    }
-})
+// //     res.send('El medio de pago se cambió exitosamente');
+// // })
+
+// router.put('/cambiarpago', async (req, res) => 
+// {
+//     const option = req.query
+//     const {user} = req.auth
+//     const success = await updatePaymentInOrder(option, user)
+    
+//     if(success)
+//     {
+//         res.status(201).send('The payment method has been changed.')
+//     }
+//     else
+//     {
+//         res.status(500).send('Could not change the payment method.')
+//     }
+// })
+
+// /**
+//  * @swagger
+//  * /pedidos/cambiardireccion:
+//  *  put:
+//  *      tags: [Pedidos]
+//  *      summary: Cambiar la dirección de entrega de un pedido. 
+//  *      description: Permite cambiar la dirección del pedido abierto.
+//  *      parameters:
+//  *      -   name: "direccion"
+//  *          in: "query"
+//  *          required: true      
+//  *      responses:
+//  *          200:
+//  *              description: Operación exitosa.
+//  *          400:
+//  *              description: El pedido no se pudo procesar por información errónea.
+//  *          401:
+//  *              description: Necesita estar logeado como cliente para realizar esa accion.
+//  */
+
+// // router.put('/cambiardireccion', autenticacionCliente, puedeEditarPedido, direccionValida, (req, res) => {
+// //     const {direccion} = req.query;
+// //     const {user} = req.auth;
+// //     modificarDireccion(user, direccion);
+    
+// //     res.send('La dirección se cambió exitosamente.');
+// // })
+
+// router.put('/cambiardireccion', async (req, res) => 
+// {
+//     const {direccion} = req.query
+//     const {user} = req.auth
+//     const success = await updateAddress(direccion, user)
+    
+//     if(success)
+//     {
+//         res.status(201).send('The address has been changed.')
+//     }
+//     else
+//     {
+//         res.status(500).send('Could not change the address.')
+//     }
+// })
+
+// /**
+//  * @swagger
+//  * /pedidos/modificarestado/cliente:
+//  *  put:
+//  *      tags: [Pedidos]
+//  *      summary: Cambiar los estados de los pedidos siendo cliente. 
+//  *      description: Permite a los clientes cambiar el estado de sus pedidos.
+//  *      parameters:
+//  *      -   name: "estado"
+//  *          in: "query"
+//  *          required: true
+//  *          type: "array"
+//  *          items:
+//  *          schema:
+//  *              type: "string"
+//  *              enum:
+//  *              -   "confirmado"
+//  *              -   "cancelado"        
+//  *      responses:
+//  *          200:
+//  *              description: Operación exitosa.
+//  *          401:
+//  *              description: Se necesita permiso para realizar esa accion.
+//  */
+
+// //  router.put('/modificarestado/cliente', autenticacionCliente, puedeEditarPedido, estadoValidoCliente, (req, res) => {
+// //     const {estado} = req.query;
+// //     const {user} = req.auth;
+// //     modificarEstadoCliente(user, estado);
+
+// //     res.send('El estado del pedido se modificó exitosamente.')
+// // })
+
+// router.put('/modificarestado/cliente', async (req, res) => 
+// {
+//     const {estado} = req.query
+//     const {user} = req.auth
+//     const success = await updateOrderStateClient(estado, user)
+    
+//     if(success)
+//     {
+//         res.status(201).send('The order\'s state has been changed.')
+//     }
+//     else
+//     {
+//         res.status(500).send('Could not change the order\'s state.')
+//     }
+// })
+
+// /**
+//  * @swagger
+//  * /pedidos/modificarestado/admin:
+//  *  put:
+//  *      tags: [Pedidos]
+//  *      summary: Cambiar los estados de los pedidos siendo administrador. 
+//  *      description: Permite a los administradores cambiar el estado de los pedidos.
+//  *      parameters:
+//  *      -   name: "ordenId"
+//  *          in: "query"
+//  *          required: true
+//  *          type: "string"
+//  *      -   name: "estado"
+//  *          in: "query"
+//  *          required: true
+//  *          type: "array"
+//  *          items:
+//  *          schema:
+//  *              type: "string"
+//  *              enum:
+//  *              -   "preparando"
+//  *              -   "enviando"
+//  *              -   "cancelado"
+//  *              -   "entregado"         
+//  *      responses:
+//  *          200:
+//  *              description: Operación exitosa.
+//  *          401:
+//  *              description: Necesitas estar logeado para realizar esa accion.
+//  */
+
+// // router.put('/modificarestado/admin', autenticacionAdmin, ordenExiste, estadoValidoAdmin, (req, res) => {
+// //     const {ordenId, estado} = req.query;
+// //     modificarEstadoAdmin(ordenId, estado);
+
+// //     res.send('El estado del pedido se modificó exitosamente.')
+// // })
+
+// router.put('/modificarestado/admin', async (req, res) => 
+// {
+//     const {ordenId, estado} = req.query
+//     const success = await updateOrderStateClient(estado, ordenId)
+    
+//     if(success)
+//     {
+//         res.status(201).send('The order\'s state has been changed.')
+//     }
+//     else
+//     {
+//         res.status(500).send('Could not change the order\'s state.')
+//     }
+// })
 
 /**
  * @swagger

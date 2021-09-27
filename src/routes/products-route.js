@@ -2,11 +2,56 @@ const express = require('express')
 const {addProduct, getProducts, updateProduct, deleteProduct} = 
 require('../controllers/products-controller')
 const { adminAuthentication } = require('../middlewares/auth')
-const { tryValidProduct, tryRegisteredProduct, tryProductUpdate } = 
+const { tryValidProduct, tryRegisteredProduct, tryProductExist } = 
 require('../middlewares/product-validation')
 
 
 const router = express.Router()
+
+/**
+ * @swagger
+ * /productos/agregar/{productoId}:
+ *  post:
+ *      tags: [Productos]
+ *      summary: Agregar un producto a la tienda.
+ *      description: Permite la adición de un producto a la tienda.
+ *      parameters:
+ *      -   name: "productoId"
+ *          in: "path"
+ *          required: true
+ *          type: "string"
+ *      requestBody:
+ *          required: true
+ *          content:
+ *              application/json:
+ *                  schema:
+ *                      $ref: '#/components/schemas/adicion de productos'
+ *      responses:
+ *          201:
+ *              description: El producto se agregó exitosamente.
+ *          400:
+ *              description: El producto no se pudo agregar por información errónea del mismo.
+ *          401:
+ *              description: Se necesitan permisos de administrador para realizar esa operación.
+ */
+
+ router.post('/agregar/:id/', adminAuthentication, tryRegisteredProduct, 
+ tryValidProduct, async (req, res) => 
+ {
+     const newProduct = req.body
+     const _id = req.params.id
+     const success = await addProduct(newProduct, _id)
+ 
+     if(success)
+     {
+         res.status(201).send('The product has been added.')
+     }
+     else
+     {
+         res.status(500).send('Unable to add the product.')
+     }
+ })
+ 
 /**
  * @swagger
  * /productos/lista:
@@ -41,50 +86,6 @@ router.get('/lista', async (req, res) =>
 
 /**
  * @swagger
- * /productos/agregar/{productoId}:
- *  post:
- *      tags: [Productos]
- *      summary: Agregar un producto a la tienda.
- *      description: Permite la adición de un producto a la tienda.
- *      parameters:
- *      -   name: "productoId"
- *          in: "path"
- *          required: true
- *          type: "string"
- *      requestBody:
- *          required: true
- *          content:
- *              application/json:
- *                  schema:
- *                      $ref: '#/components/schemas/adicion de productos'
- *      responses:
- *          201:
- *              description: El producto se agregó exitosamente.
- *          400:
- *              description: El producto no se pudo agregar por información errónea del mismo.
- *          401:
- *              description: Se necesitan permisos de administrador para realizar esa operación.
- */
-
-router.post('/agregar/:id/', adminAuthentication, tryRegisteredProduct, 
-tryValidProduct, async (req, res) => 
-{
-    const newProduct = req.body
-    const _id = req.params.id
-    const success = await addProduct(newProduct, _id)
-
-    if(success)
-    {
-        res.status(201).send('The product has been added.')
-    }
-    else
-    {
-        res.status(500).send('Unable to add the product.')
-    }
-})
-
-/**
- * @swagger
  * /productos/modificar/{productoId}:
  *  put:
  *      tags: [Productos]
@@ -111,7 +112,7 @@ tryValidProduct, async (req, res) =>
  */
 
 router.put('/modificar/:id/', adminAuthentication, 
-tryProductUpdate, tryValidProduct, async (req, res) => 
+tryProductExist, tryValidProduct, async (req, res) => 
 {
     const update = req.body
     const _id = req.params.id
@@ -156,7 +157,7 @@ tryProductUpdate, tryValidProduct, async (req, res) =>
 //     res.send('El producto se eliminó exitosamente.');
 // })
 
-router.delete('/eliminar/:id/',  adminAuthentication, tryProductUpdate, 
+router.delete('/eliminar/:id/',  adminAuthentication, tryProductExist, 
 async (req, res) => 
 {
     const _id = req.params.id

@@ -135,7 +135,9 @@ const tryLogin = async (req, res, next) =>
 
             if(user.token !== '')
             {
-                throw new Error('You are trying to log in again.')
+                throw new Error('You are trying to log in again. ' +
+                'This is your token, in case you forgot it:\n' + 
+                user.token)
             }
     
             req.user = user

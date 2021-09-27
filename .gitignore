@@ -1,16 +1,4 @@
 node_modules
-src/routes/mediosPagoRoute.js
-src/routes/pedidosRoute.js
-src/routes/productosRoute.js
-src/routes/usuariosRoute.js
-src/models/mediosPago.js
-src/models/productos.js
-src/models/pedidos.js
-src/models/usuarios.js
-src/middlewares/autenticacion.js
-src/middlewares/comporbacionUsuarios.js
-src/middlewares/comprobacionPago.js
-src/middlewares/comprobacionPedidos.js
-src/middlewares/comprobacionProductos.js
 src/e.js
+src/models/e.model.js
 .env
