@@ -1,6 +1,7 @@
 const Order = require('../models/order')
 const Payment = require('../models/payment-method')
 const Product = require('../models/product')
+const User = require('../models/user')
 
 exports.addOrder = async (ID, user, thisOrder) =>
 {
@@ -45,14 +46,24 @@ exports.getOrders = async () =>
     try
     {
         const result = await Order.find({})
+        let orders = []
 
-        const orders = result.map((element) => 
+        for(let i = 0; i < result.length; i++)
         {
-            const {name, usermane, email, phone, address,
-            description, price, method, order, state} = element
-            return {name, usermane, email, phone, address,
-                description, price, method, order, state}
-        })
+            const {products, total, paymentMethod, state, owner} = result[i]
+            let productList = []
+
+            for(let j = 0; j < products.length; j++)
+            {
+                const {ID, name, price} = await Product.findById(products[i].product)
+                const quantity = products[i].quantity
+                productList[i] = {ID, name, price, quantity}
+            }
+
+            const {method} = await Payment.findById(paymentMethod)
+            const {name, email} = await User.findById(owner)
+            orders[i] = {products:productList, total, paymentMethod:method, state, name, email}
+        }
 
         return orders
     }
@@ -110,4 +121,32 @@ exports.deleteProduct = async (_id) =>
     {
         return console.log(error.message)
     }
+}
+
+
+async function ordersInfo(result)
+{
+    let orders
+    try{
+        orders = result.map(async (element) => 
+        {
+            const {products, total, paymentMethod, state, owner} = element
+    
+            // const productsInfo = await products.map(async (product) => 
+            // {
+            //     const {ID, name, price} = await Product.findById(product.product)
+            //     return {ID, name, price}
+            // })
+    
+            const {method} = await Payment.findById(paymentMethod)
+            const {name, email} = await User.findById(owner)
+            return {total, method, state, name, email}
+        })
+    }catch(error)
+    {
+
+    }
+    
+
+    return orders
 }

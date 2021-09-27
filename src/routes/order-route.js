@@ -1,6 +1,6 @@
 const express = require('express');
-const { addOrder } = require('../controllers/orders-controller');
-const { customerAuthentication } = require('../middlewares/auth');
+const { addOrder, getOrders } = require('../controllers/orders-controller');
+const { customerAuthentication, adminAuthentication } = require('../middlewares/auth');
 const { tryOpenOrder, tryValidOrder } = require('../middlewares/order-validation');
 const { tryProductExist } = require('../middlewares/product-validation');
 
@@ -32,20 +32,6 @@ const router = express.Router();
  *          401:
  *              description: Necesita estar logeado como cliente para realizar esa accion.
  */
-
-// router.post('/nuevo/:id/', autenticacionCliente, tienePedidoAbierto, productoExiste, 
-// pedidoValido, (req, res) => {
-//     const estePedido = req.body;
-//     const id = req.params.id;
-//     const {user} = req.auth;
-//     const producto = obtenerEsteProducto(id);
-//     const usuario = obtenerEsteUsuario(user);
-//     const medioPago = obtenerEsteMedio(estePedido.pago);
-//     const pedidoNuevo = generarPedido(producto, usuario, medioPago, estePedido);
-
-//     agregarPedidos(pedidoNuevo)
-//     res.send('El pedido se procesó exitosamente.');
-// })
 
 router.post('/nuevo/:id/', customerAuthentication, tryProductExist, 
 tryOpenOrder, tryValidOrder, async (req, res) => 
@@ -92,19 +78,19 @@ tryOpenOrder, tryValidOrder, async (req, res) =>
 //     res.send(obtenerPedidos())
 // })
 
-// router.get('/lista', async (req, res) => 
-// {
-//     const orders = await getOrders()
+router.get('/lista', adminAuthentication, async (req, res) => 
+{
+    const orders = await getOrders()
 
-//     if(orders)
-//     {
-//         res.status(201).json(orders)
-//     }
-//     else
-//     {
-//         res.status(500).send('Could not access orders.')
-//     }
-// })
+    if(orders)
+    {
+        res.status(201).json(orders)
+    }
+    else
+    {
+        res.status(500).send('Could not access orders.')
+    }
+})
 
 // /**
 //  * @swagger
