@@ -59,8 +59,7 @@ const tryValidProduct = async (req, res, next) =>
         }
         else
         {
-            // res.status(300).send('The fields you are trying to add are not allowed.')
-            res.status(300).send(error.message)
+            res.status(300).send('The fields you are trying to add are not allowed.')
         }
     }
 }
