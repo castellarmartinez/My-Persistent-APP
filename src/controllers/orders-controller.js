@@ -103,13 +103,64 @@ exports.getOrdersByUser = async (orders) =>
     }
 }
 
-exports.updateProduct = async (_id, update) =>
+exports.addProductToOrder = async (product, quantity, user) =>
 {
     try
     {
-        const product = await Product.findByIdAndUpdate(_id, update)
+        const order = await Order.findOne({owner: user._id, state: "open"})
+        order.products.push({product: product._id, quantity})
+        order.total += quantity * product.price
 
-        return product
+        return await order.save()
+    }
+    catch(error)
+    {
+        return console.log(error.message)
+    }
+}
+
+exports.removeProductFromOrder = async (product, quantityToRemove, user, order) =>
+{
+    try
+    {
+        const original = order.products.filter((element) => 
+        JSON.stringify(element.product) === JSON.stringify(product._id))
+        const originalQuantity = original[0].quantity
+
+        if(originalQuantity < quantityToRemove)
+        {
+            throw new Error('You cannot remove a quantity greater than the original quantity.')
+        }
+        else if(originalQuantity === quantityToRemove)
+        {
+            order.total -= quantityToRemove * product.price
+
+            for(let i = 0; i < order.products.length; i++)
+            {
+                if(JSON.stringify(order.products[i].product) === JSON.stringify(product._id))
+                {
+                    order.products.splice(i, 1)
+                    break
+                }
+            }
+
+            return await order.save()
+        }
+        else // no removal of all units
+        {
+            const newQuantity = originalQuantity - quantityToRemove
+            order.total -= quantityToRemove * product.price
+            
+            for(let i = 0; i < order.products.length; i++)
+            {
+                if(JSON.stringify(order.products[i].product) === JSON.stringify(product._id))
+                {
+                    order.products[i].quantity = newQuantity
+                }
+            }
+
+            return await order.save()
+        }
     }
     catch(error)
     {
@@ -124,22 +175,6 @@ exports.deleteProduct = async (_id) =>
         const product = await Product.findByIdAndDelete(_id)
 
         return product
-    }
-    catch(error)
-    {
-        return console.log(error.message)
-    }
-}
-
-exports.addProductToOrder = async (product, quantity, user) =>
-{
-    try
-    {
-        const order = await Order.findOne({owner: user._id, state: "open"})
-        order.products.push({product: product._id, quantity})
-        order.total += quantity * product.price
-
-        return await order.save()
     }
     catch(error)
     {

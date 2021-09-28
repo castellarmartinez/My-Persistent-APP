@@ -1,6 +1,7 @@
 const Joi = require("joi");
 const Order = require("../models/order")
-const Payment = require("../models/payment-method")
+const Payment = require("../models/payment-method");
+const Product = require("../models/product");
 
 const OrderSchema = Joi.object(
 {
@@ -218,22 +219,10 @@ const tryMadeOrders = async (req, res, next) =>
     }
 }
 
-const adicionValida = (req, res, next) => 
-{
-    const {unidades} = req.query;
-
-    if(unidadesEnteroMayorACero(unidades)){
-        next()
-    }
-    else{
-        res.status(400).send('La unidades a agregar deben ser mayor a cero.');
-    }
-}
-
 const tryValidAddition = (req, res, next) => 
 {
-    const {unidades} = req.query;
-    const validQuantity = unidades % 1 === 0 && unidades > 0
+    const {unidades: quantity} = req.query;
+    const validQuantity = quantity % 1 === 0 && quantity > 0
 
     if(validQuantity)
     {
@@ -241,10 +230,39 @@ const tryValidAddition = (req, res, next) =>
     }
     else
     {
-        res.status(400).send('The units to add must be greater than 0.');
+        res.status(400).send('The units to add must be greater than 0.')
     }
 }
 
+const tryValidElimination = async (req, res, next) =>
+{
+    const ID = req.params.id
+    const user = req.user
+    const {unidades: quantity} = req.query
+    const validQuantity = quantity % 1 === 0 && quantity > 0
+
+    if(!validQuantity)
+    {
+        res.status(400).send('The units to remove must be greater than 0.')
+    }
+    else
+    {
+        const product = await Product.findOne({ID})
+        const order = await Order.findOne({owner: user._id, state: "open", 
+        "products.product": product._id})
+    
+        if(order)
+        {
+            req.order = order
+            next()
+        }
+        else
+        {
+            res.status(405).send('You do not have an open order with the product '
+            + 'you are trying to remove.')
+        }
+    }
+}
 const estadoValidoAdmin = (req, res, next) => {
     const {estado} = req.query;
 
@@ -281,25 +299,6 @@ const ordenExiste = (req, res, next) => {
 }
 
 
-
-const eliminacionValida = (req, res, next) => {
-    const idProducto = req.params.id;
-    const user = req.auth.user;
-    const {unidades} = req.query;
-    const producto = obtenerEsteProducto(idProducto);
-    const pedido = obtenerEstePedido(user);
-
-    if(!unidadesEnteroMayorACero(unidades)){
-        res.status(400).send('La unidades a agregar deben ser mayor a cero.');
-    }
-    else if(!eliminarValido(pedido, producto)){
-        res.status(405).send('No tiene ningún pedido abierto con el producto que intenta eliminar.');
-    }
-    else{
-        next();
-    }
-}
-
 const direccionValida = (req, res, next) => {
     const {direccion} = req.query;
     const parametrosValidos = direccion;
@@ -313,4 +312,4 @@ const direccionValida = (req, res, next) => {
 }
 
 module.exports = {tryOpenOrder, tryValidOrder, tryMadeOrders, 
-    tryEditOrder, tryValidAddition}
+    tryEditOrder, tryValidAddition, tryValidElimination}

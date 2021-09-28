@@ -1,10 +1,10 @@
 const express = require('express');
-const { addOrder, getOrders, getOrdersByUser, addProductToOrder } = 
-require('../controllers/orders-controller');
-const { customerAuthentication, adminAuthentication } = require('../middlewares/auth');
+const { addOrder, getOrders, getOrdersByUser, addProductToOrder, 
+    removeProductFromOrder } = require('../controllers/orders-controller')
+const { customerAuthentication, adminAuthentication } = require('../middlewares/auth')
 const { tryOpenOrder, tryValidOrder, tryMadeOrders, tryEditOrder, 
-    tryValidAddition } = require('../middlewares/order-validation');
-const { tryProductExist } = require('../middlewares/product-validation');
+    tryValidAddition, tryValidElimination } = require('../middlewares/order-validation')
+const { tryProductExist } = require('../middlewares/product-validation')
 
 const router = express.Router();
 
@@ -148,17 +148,6 @@ router.get('/historial', customerAuthentication, tryMadeOrders, async (req, res)
  *              description: Necesita estar logeado como cliente para realizar esa accion.
  */
 
-// // router.put('/agregarproducto/:id/', autenticacionCliente, puedeEditarPedido, productoExiste, 
-// // adicionValida, (req, res) => {
-// //     const pedido = req.query;
-// //     const id = req.params.id;
-// //     const {user} = req.auth;
-// //     const producto = obtenerEsteProducto(id);
-// //     agregarProducto(producto, user, pedido);
-    
-// //     res.send('El producto se agregó al pedido.');
-// // })
-
 router.put('/agregarproducto/:id/', customerAuthentication, tryEditOrder, 
 tryProductExist, tryValidAddition, async (req, res) => 
 {
@@ -177,58 +166,50 @@ tryProductExist, tryValidAddition, async (req, res) =>
     }
 })
 
-// /**
-//  * @swagger
-//  * /pedidos/quitarproducto/{productoId}:
-//  *  put:
-//  *      tags: [Pedidos]
-//  *      summary: Eliminar un producto del pedido. 
-//  *      description: Permite suprimir un producto del pedido abierto.
-//  *      parameters:
-//  *      -   name: "productoId"
-//  *          in: "path"
-//  *          required: true     
-//  *      -   name: "unidades"
-//  *          in: "query"
-//  *          required: true     
-//  *      responses:
-//  *          200:
-//  *              description: Operación exitosa.
-//  *          400:
-//  *              description: El pedido no se pudo procesar por información errónea.
-//  *          401:
-//  *              description: Necesita estar logeado como cliente para realizar esa accion.
-//  *          405:
-//  *              description: No hay pedido abierto con el producto.
-//  */
+/**
+ * @swagger
+ * /pedidos/quitarproducto/{productoId}:
+ *  put:
+ *      tags: [Pedidos]
+ *      summary: Eliminar un producto del pedido. 
+ *      description: Permite suprimir un producto del pedido abierto.
+ *      parameters:
+ *      -   name: "productoId"
+ *          in: "path"
+ *          required: true     
+ *      -   name: "unidades"
+ *          in: "query"
+ *          required: true     
+ *      responses:
+ *          200:
+ *              description: Operación exitosa.
+ *          400:
+ *              description: El pedido no se pudo procesar por información errónea.
+ *          401:
+ *              description: Necesita estar logeado como cliente para realizar esa accion.
+ *          405:
+ *              description: No hay pedido abierto con el producto.
+ */
 
-// router.put('/quitarproducto/:id/', autenticacionCliente, puedeEditarPedido, productoExiste, 
-// eliminacionValida, (req, res) => {
-//     const pedido = req.query;
-//     const id = req.params.id;
-//     const {user} = req.auth;
-//     const producto = obtenerEsteProducto(id);
-//     quitarProducto(producto, user, pedido);
+router.put('/quitarproducto/:id/', customerAuthentication, tryEditOrder,
+tryProductExist, tryValidElimination, async (req, res) => 
+{
+    const {unidades} = req.query
+    const quantity = parseInt(unidades, 10)
+    const product = req.product
+    const user = req.user
+    const order = req.order
+    const success = await removeProductFromOrder(product, quantity, user, order)
     
-//     res.send('El producto se eliminó/redujo del pedido.');
-// })
-
-// router.put('/quitarproducto/:id/', async (req, res) => 
-// {
-//     const order = req.body
-//     const _id = req.params.id
-//     const {user} = req.auth
-//     const success = await removeProductFromOrder(_id, order, user)
-    
-//     if(success)
-//     {
-//         res.status(201).send('The product has been added to the order.')
-//     }
-//     else
-//     {
-//         res.status(500).send('Could not add the product.')
-//     }
-// })
+    if(success)
+    {
+        res.status(201).send('The product has been added to the order.')
+    }
+    else
+    {
+        res.status(500).send('Could not add the product.')
+    }
+})
 
 // /**
 //  * @swagger
