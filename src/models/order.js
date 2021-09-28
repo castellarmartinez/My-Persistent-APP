@@ -2,6 +2,12 @@ const mongoose = require('mongoose')
 
 const Order = mongoose.model('Order',
 {
+    orderId: 
+    {
+        type: String,
+        required: true
+    },
+
     products: 
     [
         {

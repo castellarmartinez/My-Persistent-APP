@@ -56,37 +56,40 @@ function pedidoAbierto(usuario){
     return abierto;
 }
 
+function stateAdmin(state)
+{
+    let stateValid = false;
 
-function estadoAdmin(estado){
-    let estadoValido = false;
-
-    switch(estado){
-        case 'preparando':
-        case 'enviando':
-        case 'cancelado':
-        case 'entregado':
-            estadoValido = true;
-            break;
+    switch(state)
+    {
+        case 'preparing':
+        case 'shipping':
+        case 'cancelled':
+        case 'delivered':
+            stateValid = true
+            break
         default:
-            break;
+            break
     }
 
-    return estadoValido;
+    return stateValid;
 }
 
-function estadoCliente(estado){
-    let estadoValido = false;
+function stateCustomer(state)
+{
+    let stateValid = false;
 
-    switch(estado){
-        case 'confirmado':
-        case 'cancelado':
-            estadoValido = true;
-            break;
+    switch(state)
+    {
+        case 'confirmed':
+        case 'cancelled':
+            stateValid = true
+            break
         default:
-            break;
+            break
     }
 
-    return estadoValido;
+    return stateValid
 }
 
 function estadoNuevoPedido(estadoIngresado){
@@ -268,43 +271,50 @@ const tryValidElimination = async (req, res, next) =>
     }
 }
 
+const tryValidStateCustomer = (req, res, next) => 
+{
+    const {state} = req.query
 
-
-const estadoValidoAdmin = (req, res, next) => {
-    const {estado} = req.query;
-
-    if(estadoAdmin(estado)){
-        next();
+    if(stateCustomer(state))
+    {
+        next()
     }
-    else{
-        res.status(400).send('No se ha podido cambiar el estado.\n' +
-         'Verifique que el estado sea válido.')
-    }
-}
-
-const estadoValidoCliente = (req, res, next) => {
-    const {estado} = req.query;
-
-    if(estadoCliente(estado)){
-        next();
-    }
-    else{
-        res.status(400).send('No se ha podido cambiar el estado.\n' +
-         'Verifique que el estado sea válido.')
+    else
+    {
+        res.status(400).send('The state could not be changed.\n' +
+         'Only "confirmed" and "cancelled" are valid.')
     }
 }
 
-const ordenExiste = (req, res, next) => {
-    const {ordenId} = req.query;
+const tryValidStateAdmin = (req, res, next) => 
+{
+    const {state} = req.query
 
-    if(orden(ordenId)){
-        next();
+    if(stateAdmin(state))
+    {
+        next()
     }
-    else{
-        res.status(403).send('El pedido que intenta modificar no existe.')
+    else
+    {
+        res.status(400).send('The state could not be changed.\n' +
+        'Only "preparing", "shipping", "cancelled" and "delivered" are valid.')
     }
 }
 
+const tryOrderExist = async (req, res, next) => 
+{
+    const {orderId} = req.query
+    const order = await Order.findOne({orderId})
+
+    if(order)
+    {
+        req.order = order
+        next()
+    }
+    else{
+        res.status(403).send('The order you are trying to edit does not exist.')
+    }
+}
 
 const direccionValida = (req, res, next) => {
     const {direccion} = req.query;
@@ -319,4 +329,5 @@ const direccionValida = (req, res, next) => {
 }
 
 module.exports = {tryOpenOrder, tryValidOrder, tryMadeOrders, 
-    tryEditOrder, tryValidAddition, tryValidElimination}
+    tryEditOrder, tryValidAddition, tryValidElimination, tryValidStateCustomer,
+    tryValidStateAdmin, tryOrderExist}

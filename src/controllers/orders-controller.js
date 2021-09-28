@@ -11,9 +11,23 @@ exports.addOrder = async (ID, user, thisOrder) =>
         const {quantity, state, payment} = thisOrder
         const thisProduct = await Product.findOne({ID})
         const thisPayment = await Payment.findOne({option: payment})
+        const allOrders = await Order.find({})
+        let orderId
+        
+        if(allOrders.length === 0)
+        {
+            orderId = '#1'
+        }
+        else
+        {
+            let last = allOrders.slice(-1)[0].orderId           
+            last ? orderId = '#'.concat(++last) : orderId = '#1'
+        }
 
         const newOrder = 
         {
+            orderId,
+
             products:
             [
                 {
@@ -187,6 +201,20 @@ exports.updatePaymentInOrder = async (payment, order) =>
     try
     {
         order.paymentMethod = payment._id
+
+        return await order.save()
+    }
+    catch(error)
+    {
+        return console.log(error.message)
+    }
+}
+
+exports.updateOrderState = async (state, order) =>
+{
+    try
+    {
+        order.state = state
 
         return await order.save()
     }

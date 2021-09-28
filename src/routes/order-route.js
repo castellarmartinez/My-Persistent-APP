@@ -1,10 +1,11 @@
 const express = require('express');
 const { addOrder, getOrders, getOrdersByUser, addProductToOrder, 
-    removeProductFromOrder, updatePaymentInOrder } = 
+    removeProductFromOrder, updatePaymentInOrder,updateOrderState } = 
     require('../controllers/orders-controller')
 const { customerAuthentication, adminAuthentication } = require('../middlewares/auth')
 const { tryOpenOrder, tryValidOrder, tryMadeOrders, tryEditOrder, 
-    tryValidAddition, tryValidElimination } = require('../middlewares/order-validation')
+    tryValidAddition, tryValidElimination, tryValidStateCustomer, tryValidStateAdmin, 
+    tryOrderExist} = require('../middlewares/order-validation')
 const { tryMethodUpdate } = require('../middlewares/payment-validation')
 const { tryProductExist } = require('../middlewares/product-validation')
 
@@ -232,16 +233,6 @@ tryProductExist, tryValidElimination, async (req, res) =>
  *              description: Necesita estar logeado como cliente para realizar esa accion.
  */
 
-// // router.put('/cambiarpago', autenticacionCliente, puedeEditarPedido, cambiarValido, (req, res) => {
-// //     const {opcion} = req.query;
-// //     const {user} = req.auth;
-// //     const pago = obtenerEsteMedio(opcion)
-// //     modificarPago(user, pago);
-// //     obtenerEstePedido(user);
-    
-// //     res.send('El medio de pago se cambió exitosamente');
-// // })
-
 router.put('/cambiarpago/:id', customerAuthentication, tryEditOrder, 
 tryMethodUpdate, async (req, res) => 
 {
@@ -303,30 +294,30 @@ tryMethodUpdate, async (req, res) =>
 //     }
 // })
 
-// /**
-//  * @swagger
-//  * /pedidos/modificarestado/cliente:
-//  *  put:
-//  *      tags: [Pedidos]
-//  *      summary: Cambiar los estados de los pedidos siendo cliente. 
-//  *      description: Permite a los clientes cambiar el estado de sus pedidos.
-//  *      parameters:
-//  *      -   name: "estado"
-//  *          in: "query"
-//  *          required: true
-//  *          type: "array"
-//  *          items:
-//  *          schema:
-//  *              type: "string"
-//  *              enum:
-//  *              -   "confirmado"
-//  *              -   "cancelado"        
-//  *      responses:
-//  *          200:
-//  *              description: Operación exitosa.
-//  *          401:
-//  *              description: Se necesita permiso para realizar esa accion.
-//  */
+/**
+ * @swagger
+ * /pedidos/modificarestado/cliente:
+ *  put:
+ *      tags: [Pedidos]
+ *      summary: Cambiar los estados de los pedidos siendo cliente. 
+ *      description: Permite a los clientes cambiar el estado de sus pedidos.
+ *      parameters:
+ *      -   name: "state"
+ *          in: "query"
+ *          required: true
+ *          type: "array"
+ *          items:
+ *          schema:
+ *              type: "string"
+ *              enum:
+ *              -   "confirmed"
+ *              -   "cancelled"        
+ *      responses:
+ *          200:
+ *              description: Operación exitosa.
+ *          401:
+ *              description: Se necesita permiso para realizar esa accion.
+ */
 
 // //  router.put('/modificarestado/cliente', autenticacionCliente, puedeEditarPedido, estadoValidoCliente, (req, res) => {
 // //     const {estado} = req.query;
@@ -336,52 +327,53 @@ tryMethodUpdate, async (req, res) =>
 // //     res.send('El estado del pedido se modificó exitosamente.')
 // // })
 
-// router.put('/modificarestado/cliente', async (req, res) => 
-// {
-//     const {estado} = req.query
-//     const {user} = req.auth
-//     const success = await updateOrderStateClient(estado, user)
+router.put('/modificarestado/cliente', customerAuthentication, tryEditOrder, 
+tryValidStateCustomer, async (req, res) => 
+{
+    const {state} = req.query
+    const order = req.order
+    const success = await updateOrderState(state, order)
     
-//     if(success)
-//     {
-//         res.status(201).send('The order\'s state has been changed.')
-//     }
-//     else
-//     {
-//         res.status(500).send('Could not change the order\'s state.')
-//     }
-// })
+    if(success)
+    {
+        res.status(201).send('The order\'s state has been changed.')
+    }
+    else
+    {
+        res.status(500).send('Could not change the order\'s state.')
+    }
+})
 
-// /**
-//  * @swagger
-//  * /pedidos/modificarestado/admin:
-//  *  put:
-//  *      tags: [Pedidos]
-//  *      summary: Cambiar los estados de los pedidos siendo administrador. 
-//  *      description: Permite a los administradores cambiar el estado de los pedidos.
-//  *      parameters:
-//  *      -   name: "ordenId"
-//  *          in: "query"
-//  *          required: true
-//  *          type: "string"
-//  *      -   name: "estado"
-//  *          in: "query"
-//  *          required: true
-//  *          type: "array"
-//  *          items:
-//  *          schema:
-//  *              type: "string"
-//  *              enum:
-//  *              -   "preparando"
-//  *              -   "enviando"
-//  *              -   "cancelado"
-//  *              -   "entregado"         
-//  *      responses:
-//  *          200:
-//  *              description: Operación exitosa.
-//  *          401:
-//  *              description: Necesitas estar logeado para realizar esa accion.
-//  */
+/**
+ * @swagger
+ * /pedidos/modificarestado/admin:
+ *  put:
+ *      tags: [Pedidos]
+ *      summary: Cambiar los estados de los pedidos siendo administrador. 
+ *      description: Permite a los administradores cambiar el estado de los pedidos.
+ *      parameters:
+ *      -   name: "orderId"
+ *          in: "query"
+ *          required: true
+ *          type: "string"
+ *      -   name: "state"
+ *          in: "query"
+ *          required: true
+ *          type: "array"
+ *          items:
+ *          schema:
+ *              type: "string"
+ *              enum:
+ *              -   "preparing"
+ *              -   "shipping"
+ *              -   "cancelled"
+ *              -   "delivered"         
+ *      responses:
+ *          200:
+ *              description: Operación exitosa.
+ *          401:
+ *              description: Necesitas estar logeado para realizar esa accion.
+ */
 
 // // router.put('/modificarestado/admin', autenticacionAdmin, ordenExiste, estadoValidoAdmin, (req, res) => {
 // //     const {ordenId, estado} = req.query;
@@ -390,20 +382,22 @@ tryMethodUpdate, async (req, res) =>
 // //     res.send('El estado del pedido se modificó exitosamente.')
 // // })
 
-// router.put('/modificarestado/admin', async (req, res) => 
-// {
-//     const {ordenId, estado} = req.query
-//     const success = await updateOrderStateClient(estado, ordenId)
+router.put('/modificarestado/admin', adminAuthentication, tryOrderExist, 
+tryValidStateAdmin, async (req, res) => 
+{
+    const {state} = req.query
+    const order = req.order
+    const success = await updateOrderState(state, order)
     
-//     if(success)
-//     {
-//         res.status(201).send('The order\'s state has been changed.')
-//     }
-//     else
-//     {
-//         res.status(500).send('Could not change the order\'s state.')
-//     }
-// })
+    if(success)
+    {
+        res.status(201).send('The order\'s state has been changed.')
+    }
+    else
+    {
+        res.status(500).send('Could not change the order\'s state.')
+    }
+})
 
 /**
  * @swagger
@@ -460,18 +454,15 @@ tryMethodUpdate, async (req, res) =>
  *      adicion pedidos:
  *          type: object
  *          properties:
- *              unidades:
- *                  type: string
- *              direccion:
- *                  type: string
- *              pago:
- *                  type: string
- *              estado:
+ *              qunatity:
+ *                  type: integer
+ *              payment:
+ *                  type: integer
+ *              state:
  *          example:
- *              unidades: 5
- *              direccion: Barrio Chumbún
- *              pago: 2
- *              estado: confirmado
+ *              quantity: 5
+ *              payment: 2
+ *              state: open
  */
 
 
