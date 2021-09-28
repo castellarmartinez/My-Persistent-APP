@@ -26,11 +26,11 @@ const OrderSchema = Joi.object(
 
 async function openOrder(user)
 {
-    const userOrders = await Order.find({owner: user._id})
-    const hasOpenOrder = userOrders.some((order) => order.state === 'open')
-    const open = userOrders.length > 0 && hasOpenOrder
+    const userOrders = await Order.find({owner: user._id, state: 'open'})
+    // const hasOpenOrder = userOrders.some((order) => order.state === 'open')
+    // const open = userOrders.length > 0 && hasOpenOrder
 
-    return open
+    return userOrders
 }
 
 function datosValidos(datosIngresados){
@@ -135,8 +135,9 @@ function eliminarValido(pedido, producto){
 const tryOpenOrder = async (req, res, next) => 
 {
     const user = req.user
+    const order = await Order.findOne({owner: user._id, state: 'open'})
 
-    if(openOrder(user))
+    if(order)
     {
         res.status(401).send('You can\'t have more than one open order.\n' +
         'Close or cancel that order to be able to create another order.')
@@ -147,12 +148,14 @@ const tryOpenOrder = async (req, res, next) =>
     }
 }
 
-const tryEditOrder = (req, res, next) => 
+const tryEditOrder = async (req, res, next) => 
 {
     const user = req.user
+    const order = await Order.findOne({owner: user._id, state: 'open'})
 
-    if(openOrder(user))
+    if(order)
     {
+        req.order = order
         next()
     }
     else
@@ -219,13 +222,14 @@ const tryMadeOrders = async (req, res, next) =>
     }
 }
 
-const tryValidAddition = (req, res, next) => 
+const tryValidAddition = async (req, res, next) => 
 {
     const {unidades: quantity} = req.query;
     const validQuantity = quantity % 1 === 0 && quantity > 0
 
     if(validQuantity)
     {
+        const user = req.user
         next()
     }
     else
@@ -263,6 +267,9 @@ const tryValidElimination = async (req, res, next) =>
         }
     }
 }
+
+
+
 const estadoValidoAdmin = (req, res, next) => {
     const {estado} = req.query;
 

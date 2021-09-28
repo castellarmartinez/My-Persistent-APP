@@ -39,7 +39,7 @@ const tryValidMethod = async (req, res, next) =>
 const tryMethodUpdate = async (req, res, next) => 
 {
     const option = req.params.id
-    
+
     try
     {
         const exist = await Payment.findOne({option})
@@ -51,6 +51,7 @@ const tryMethodUpdate = async (req, res, next) =>
         }
         else
         {
+            req.payment = exist
             next()
         }
     }

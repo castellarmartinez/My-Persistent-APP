@@ -103,13 +103,27 @@ exports.getOrdersByUser = async (orders) =>
     }
 }
 
-exports.addProductToOrder = async (product, quantity, user) =>
+exports.addProductToOrder = async (product, quantityToAdd, order) =>
 {
     try
     {
-        const order = await Order.findOne({owner: user._id, state: "open"})
-        order.products.push({product: product._id, quantity})
-        order.total += quantity * product.price
+        order.total += quantityToAdd * product.price
+        const hasProduct = false
+
+        for(let i = 0; i < order.products.length; i++)
+        {
+            if(JSON.stringify(order.products[i].product) === JSON.stringify(product._id))
+            {
+                order.products[i].quantity += quantityToAdd
+                hasProduct = true
+                break
+            }
+        }
+
+        if(!hasProduct)
+        {
+            order.products.push({product: product._id, quantity: quantityToAdd})
+        }
 
         return await order.save()
     }
@@ -119,7 +133,7 @@ exports.addProductToOrder = async (product, quantity, user) =>
     }
 }
 
-exports.removeProductFromOrder = async (product, quantityToRemove, user, order) =>
+exports.removeProductFromOrder = async (product, quantityToRemove, order) =>
 {
     try
     {
@@ -168,13 +182,13 @@ exports.removeProductFromOrder = async (product, quantityToRemove, user, order) 
     }
 }
 
-exports.deleteProduct = async (_id) =>
+exports.updatePaymentInOrder = async (payment, order) =>
 {
     try
     {
-        const product = await Product.findByIdAndDelete(_id)
+        order.paymentMethod = payment._id
 
-        return product
+        return await order.save()
     }
     catch(error)
     {

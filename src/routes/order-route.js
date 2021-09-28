@@ -1,9 +1,11 @@
 const express = require('express');
 const { addOrder, getOrders, getOrdersByUser, addProductToOrder, 
-    removeProductFromOrder } = require('../controllers/orders-controller')
+    removeProductFromOrder, updatePaymentInOrder } = 
+    require('../controllers/orders-controller')
 const { customerAuthentication, adminAuthentication } = require('../middlewares/auth')
 const { tryOpenOrder, tryValidOrder, tryMadeOrders, tryEditOrder, 
     tryValidAddition, tryValidElimination } = require('../middlewares/order-validation')
+const { tryMethodUpdate } = require('../middlewares/payment-validation')
 const { tryProductExist } = require('../middlewares/product-validation')
 
 const router = express.Router();
@@ -151,10 +153,10 @@ router.get('/historial', customerAuthentication, tryMadeOrders, async (req, res)
 router.put('/agregarproducto/:id/', customerAuthentication, tryEditOrder, 
 tryProductExist, tryValidAddition, async (req, res) => 
 {
+    const order = req.order
     const {unidades: quantity} = req.query
     const product = req.product
-    const user = req.user
-    const success = await addProductToOrder(product, quantity, user)
+    const success = await addProductToOrder(product, quantity, order)
     
     if(success)
     {
@@ -197,13 +199,12 @@ tryProductExist, tryValidElimination, async (req, res) =>
     const {unidades} = req.query
     const quantity = parseInt(unidades, 10)
     const product = req.product
-    const user = req.user
     const order = req.order
-    const success = await removeProductFromOrder(product, quantity, user, order)
+    const success = await removeProductFromOrder(product, quantity, order)
     
     if(success)
     {
-        res.status(201).send('The product has been added to the order.')
+        res.status(201).send('The product has been deleted/reduced to the order.')
     }
     else
     {
@@ -211,25 +212,25 @@ tryProductExist, tryValidElimination, async (req, res) =>
     }
 })
 
-// /**
-//  * @swagger
-//  * /pedidos/cambiarpago:
-//  *  put:
-//  *      tags: [Pedidos]
-//  *      summary: Cambiar el medio de pago. 
-//  *      description: Permite al cliente cambiar el medio de pago del pedido abierto.
-//  *      parameters:
-//  *      -   name: "opcion"
-//  *          in: "query"
-//  *          required: true      
-//  *      responses:
-//  *          200:
-//  *              description: Operación exitosa.
-//  *          400:
-//  *              description: El pedido no se pudo procesar por información errónea.
-//  *          401:
-//  *              description: Necesita estar logeado como cliente para realizar esa accion.
-//  */
+/**
+ * @swagger
+ * /pedidos/cambiarpago/{option}:
+ *  put:
+ *      tags: [Pedidos]
+ *      summary: Cambiar el medio de pago. 
+ *      description: Permite al cliente cambiar el medio de pago del pedido abierto.
+ *      parameters:
+ *      -   name: "option"
+ *          in: "path"
+ *          required: true      
+ *      responses:
+ *          200:
+ *              description: Operación exitosa.
+ *          400:
+ *              description: El pedido no se pudo procesar por información errónea.
+ *          401:
+ *              description: Necesita estar logeado como cliente para realizar esa accion.
+ */
 
 // // router.put('/cambiarpago', autenticacionCliente, puedeEditarPedido, cambiarValido, (req, res) => {
 // //     const {opcion} = req.query;
@@ -241,21 +242,22 @@ tryProductExist, tryValidElimination, async (req, res) =>
 // //     res.send('El medio de pago se cambió exitosamente');
 // // })
 
-// router.put('/cambiarpago', async (req, res) => 
-// {
-//     const option = req.query
-//     const {user} = req.auth
-//     const success = await updatePaymentInOrder(option, user)
+router.put('/cambiarpago/:id', customerAuthentication, tryEditOrder, 
+tryMethodUpdate, async (req, res) => 
+{
+    const payment = req.payment
+    const order = req.order
+    const success = await updatePaymentInOrder(payment, order)
     
-//     if(success)
-//     {
-//         res.status(201).send('The payment method has been changed.')
-//     }
-//     else
-//     {
-//         res.status(500).send('Could not change the payment method.')
-//     }
-// })
+    if(success)
+    {
+        res.status(201).send('The payment method has been changed.')
+    }
+    else
+    {
+        res.status(500).send('Could not change the payment method.')
+    }
+})
 
 // /**
 //  * @swagger
