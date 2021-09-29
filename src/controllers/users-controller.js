@@ -18,33 +18,17 @@ exports.addUser = async (newUser) =>
 
 exports.addAddress = async (address, user) =>
 {   
+    const addressInfo = 
+    {
+        address,
+        owner: user._id
+    }
+
+    const newAddress = new Address(addressInfo)
+    
     try
     {
-       const addresses = await Address.findOne({owner: user._id})
-
-       if(addresses)
-       {
-           addresses.addressList.push({address})
-           return await addresses.save()
-       }
-
-       else
-       {
-           const newAddressList = 
-           {
-               addressList:
-               [
-                   {
-                       address,
-                    }
-                ],
-                owner: user._id
-            }
-            
-           const newList = new Address(newAddressList)
-
-           return await newList.save()
-       }
+        return await newAddress.save()
     }
     catch(error)
     {
@@ -76,13 +60,13 @@ exports.getAddressList = async (user) =>
 {
     try
     {
-       const addresses = await Address.findOne({owner: user._id})
+       const addresses = await Address.find({owner: user._id})
 
-       if(addresses)
+       if(addresses.length > 0)
        {
-           const userAddresses = addresses.addressList.map((address) => 
+           const userAddresses = addresses.map((element) => 
            {
-                return {address: address.address, option: address.option}
+                return {address: element.address, option: element.option}
            })
 
            return userAddresses
