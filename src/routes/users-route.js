@@ -1,7 +1,7 @@
 const express = require('express')
-const {addUser, getUsers, userLogIn, userLogOut, suspendUser} = 
-require('../controllers/users-controller')
-const { adminAuthentication } = require('../middlewares/auth')
+const {addUser, getUsers, userLogIn, userLogOut, suspendUser, addAddress, 
+    getAddressList} = require('../controllers/users-controller')
+const { adminAuthentication, customerAuthentication } = require('../middlewares/auth')
 const {tryRegisteredUser, tryValidUser, tryLogin, tryLogout} = 
 require('../middlewares/user-validation')
 
@@ -65,10 +65,6 @@ const router = express.Router()
  *              description: El usuario y/o contraseña no son validos.
  */
 
-// router.get('/login', intentoDeIngreso, (req, res) => {
-//     res.send('El usuarion ingresó exitosamente.'); 
-// })
-
 router.post('/login', tryLogin, async (req, res) => 
 {
     const user = req.user
@@ -115,6 +111,42 @@ router.post('/logout', tryLogout, async (req, res) =>
 
 /**
  * @swagger
+ * /usuarios/addAddress:
+ *  post:
+ *      tags: [Usuarios]
+ *      summary: Ingreso a todos los usuarios registrados.
+ *      description: La da acceso a un usuario.
+ *      requestBody:
+ *          required: true
+ *          content:
+ *              application/json:
+ *                  schema:
+ *                      $ref: '#/components/schemas/addAddress'
+ *      responses:
+ *          "200":
+ *              description: El usuarion ingresó exitosamente.
+ *          "500":
+ *              description: El usuario y/o contraseña no son validos.
+ */
+
+ router.post('/addAddress', customerAuthentication, async (req, res) => 
+ {
+    const {address} = req.body
+    const user = req.user
+    const success = await addAddress(address, user)
+
+    if(success)
+    {
+        res.status(201).send('You have added a new address.')
+    }
+    else
+    {
+        res.status(201).send('Unable to add address.')
+    }
+ })
+
+/**
+ * @swagger
  * /usuarios/lista:
  *  get:
  *      tags: [Usuarios]
@@ -136,6 +168,41 @@ router.post('/logout', tryLogout, async (req, res) =>
 router.get('/lista', adminAuthentication, async (req, res) => 
 {
     const users = await getUsers()
+
+    if(users)
+    {
+        res.status(201).json(users)
+    }
+    else
+    {
+        res.status(500).send('Could not access registered users.')
+    }
+})
+
+/**
+ * @swagger
+ * /usuarios/getAddresses:
+ *  get:
+ *      tags: [Usuarios]
+ *      summary: Obtener las cuentas registradas (nombre, usuario, administrador).
+ *      description: Devuelve una lista con los usuarios registrados.
+ *      responses:
+ *          200:
+ *              description: Operación exitosa.
+ *              content:
+ *                  application/json:
+ *                      schema:
+ *                          type: array
+ *                          items:
+ *                              $ref: '#/components/schemas/address list'
+ *          401:
+ *              description: Se necesita permiso para realizar esa accion
+ */
+
+router.get('/getAddresses', customerAuthentication, async (req, res) => 
+{
+    const user = req.user
+    const users = await getAddressList(user)
 
     if(users)
     {
@@ -215,6 +282,26 @@ router.put('/suspend', adminAuthentication, async (req, res) =>
  * 
  * components: 
  *  schemas:
+ *      address list:
+ *          type: object
+ *          properties:
+ *              address:
+ *                  type: string
+ *              option:
+ *                  type: integer
+ *          example:
+ *              address: Plaza Principal
+ *              option: 1
+ */
+
+/**
+ * @swagger
+ * tags:
+ *  name: Usuarios
+ *  description: Seccion de usuarios
+ * 
+ * components: 
+ *  schemas:
  *      logout:
  *          type: object
  *          properties:
@@ -251,6 +338,25 @@ router.put('/suspend', adminAuthentication, async (req, res) =>
  *          example:
  *              email: aolegario@nebular.com
  *              password: arneolegario
+ */
+
+/**
+ * @swagger
+ * tags:
+ *  name: Usuarios
+ *  description: Seccion de usuarios
+ * 
+ * components: 
+ *  schemas:
+ *      addAddress:
+ *          type: object
+ *          requred:
+ *              -address
+ *          properties:
+ *              address:
+ *                  type: string
+ *          example:
+ *              address: calle 26#35-12
  */
 
 /**

@@ -1,4 +1,5 @@
 const User = require('../models/user')
+const Address = require('../models/address')
 const jwt = require('jsonwebtoken')
 
 exports.addUser = async (newUser) =>
@@ -8,6 +9,42 @@ exports.addUser = async (newUser) =>
     try
     {
         return await user.save()
+    }
+    catch(error)
+    {
+        return console.log(error.message)
+    }
+}
+
+exports.addAddress = async (address, user) =>
+{   
+    try
+    {
+       const addresses = await Address.findOne({owner: user._id})
+
+       if(addresses)
+       {
+           addresses.addressList.push({address})
+           return await addresses.save()
+       }
+
+       else
+       {
+           const newAddressList = 
+           {
+               addressList:
+               [
+                   {
+                       address,
+                    }
+                ],
+                owner: user._id
+            }
+            
+           const newList = new Address(newAddressList)
+
+           return await newList.save()
+       }
     }
     catch(error)
     {
@@ -28,6 +65,33 @@ exports.getUsers = async () =>
         })
 
         return users
+    }
+    catch(error)
+    {
+        return console.log(error.message)
+    }
+}
+
+exports.getAddressList = async (user) =>
+{
+    try
+    {
+       const addresses = await Address.findOne({owner: user._id})
+
+       if(addresses)
+       {
+           const userAddresses = addresses.addressList.map((address) => 
+           {
+                return {address: address.address, option: address.option}
+           })
+
+           return userAddresses
+       }
+
+       else
+       {
+            return 'You do not have addresses saved.'
+       }
     }
     catch(error)
     {
