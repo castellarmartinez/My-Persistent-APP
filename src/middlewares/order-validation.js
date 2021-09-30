@@ -1,4 +1,5 @@
 const Joi = require("joi");
+const Address = require("../models/address");
 const Order = require("../models/order")
 const Payment = require("../models/payment-method");
 const Product = require("../models/product");
@@ -19,7 +20,11 @@ const OrderSchema = Joi.object(
     state:
         Joi.string().
         valid('open', 'closed').
-        required()
+        required(),
+
+    address:
+        Joi.number()
+        .required()
 })
 
 // Funciones usadas para crear los middlewares
@@ -31,29 +36,6 @@ async function openOrder(user)
     // const open = userOrders.length > 0 && hasOpenOrder
 
     return userOrders
-}
-
-function datosValidos(datosIngresados){
-    const {unidades, direccion, pago, estado} = datosIngresados;
-    const numeroDeParametros = Object.keys(datosIngresados).length;
-    const parametrosValidos = unidades && direccion && pago && estado;
-
-    if(parametrosValidos && numeroDeParametros === 4){
-        const datosValidos = unidadesEnteroMayorACero(unidades) && medioDePago(pago) &&
-        estadoNuevoPedido(estado);
-        
-        return datosValidos;
-    }
-    else{
-        return false;
-    }
-}
-
-function pedidoAbierto(usuario){
-    const abierto = obtenerPedidos().some((element) => 
-        (element.usuario === usuario && element.estado === 'nuevo'));
-
-    return abierto;
 }
 
 function stateAdmin(state)
@@ -90,47 +72,6 @@ function stateCustomer(state)
     }
 
     return stateValid
-}
-
-function estadoNuevoPedido(estadoIngresado){
-    let valido = false;
-
-    switch(estadoIngresado){
-        case 'nuevo':
-        case 'confirmado':
-            valido = true;
-            break;
-        default:
-            break;
-    }
-
-    return valido;
-}
-
-function orden(ordenIngresada){
-    const existe = obtenerPedidos().some((element) => 
-        (element.orden === ordenIngresada));
-
-    return existe;
-}
-
-function unidadesEnteroMayorACero(unidades){
-    const valido = unidades % 1 === 0 && unidades > 0;
-
-    return valido;
-}
-
-function medioDePago(pago){
-    const medio = obtenerEsteMedio(pago);
-
-    return medio;
-}
-
-function eliminarValido(pedido, producto){
-    const indice = pedido.descripcion.search(producto.nombre);
-    const valido = indice !== -1;
-
-    return valido;
 }
 
 // Middlewares
@@ -170,20 +111,26 @@ const tryEditOrder = async (req, res, next) =>
 const tryValidOrder = async (req, res, next) => 
 {
     const newOrder = req.body
+    const user = req.user
 
     try
     {
         await OrderSchema.validateAsync(newOrder)
-        const {payment} = newOrder
+        const {payment, address} = newOrder
         const methodExist = await Payment.findOne({option: payment})
+        const addressExist = await Address.findOne({owner: user._id, option: address})
 
-        if(methodExist)
+        if(!methodExist)
         {
-            next()
+            throw new Error('"payment"')
+        }
+        else if(!addressExist)
+        {
+            throw new Error('"address"')
         }
         else
         {
-            throw new Error('"payment"')
+            next()
         }
     }
     catch(error)
@@ -201,6 +148,10 @@ const tryValidOrder = async (req, res, next) =>
         else if(error.message.includes('"quantity"'))
         {
             res.status(401).send('The product quantity must be greater than 0.')
+        }
+        else if(error.message.includes('"address"'))
+        {console.log(error.message)
+            res.status(401).send('You need to provide an adress da.')
         }
         else
         {

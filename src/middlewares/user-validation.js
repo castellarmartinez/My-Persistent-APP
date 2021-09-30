@@ -177,4 +177,19 @@ const tryLogout = async (req, res, next) =>
     }
 }
 
-module.exports = {tryValidUser, tryRegisteredUser, tryLogin, tryLogout}
+const tryValidAddress = (req, res, next) =>
+{
+    const {address} = req.body
+
+    if(address)
+    {
+        next()
+    }
+    else
+    {
+        res.status(401).send('You must provide an address.')
+    }
+}
+
+module.exports = {tryValidUser, tryRegisteredUser, tryLogin, tryLogout, 
+    tryValidAddress}

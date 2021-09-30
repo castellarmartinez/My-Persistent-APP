@@ -43,6 +43,13 @@ const Order = mongoose.model('Order',
         required: true,
         ref: 'Payment'
     },
+
+    address:
+    {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+        ref: 'Adress'
+    },
     
     state:
     {

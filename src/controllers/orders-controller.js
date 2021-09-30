@@ -1,3 +1,4 @@
+const Address = require('../models/address')
 const Order = require('../models/order')
 const Payment = require('../models/payment-method')
 const Product = require('../models/product')
@@ -8,9 +9,10 @@ exports.addOrder = async (ID, user, thisOrder) =>
     // return true
     try
     {
-        const {quantity, state, payment} = thisOrder
+        const {quantity, state, payment, address} = thisOrder
         const thisProduct = await Product.findOne({ID})
         const thisPayment = await Payment.findOne({option: payment})
+        const thisAddress = await Address.findOne({owner: user._id, option: address})
         const allOrders = await Order.find({})
         let orderId
         
@@ -40,6 +42,8 @@ exports.addOrder = async (ID, user, thisOrder) =>
 
             total: thisProduct.price * quantity,
 
+            address: thisAddress._id,
+
             state,
 
             owner: user._id
@@ -64,7 +68,7 @@ exports.getOrders = async () =>
 
         for(let i = 0; i < result.length; i++)
         {
-            const {products, total, paymentMethod, state, owner} = result[i]
+            const {orderId, products, total, paymentMethod, address:thisAddress, state, owner} = result[i]
             let productList = []
 
             for(let j = 0; j < products.length; j++)
@@ -75,8 +79,10 @@ exports.getOrders = async () =>
             }
 
             const {method} = await Payment.findById(paymentMethod)
+            const {address} = await Address.findOne(thisAddress)
             const {name, email} = await User.findById(owner)
-            orders[i] = {products:productList, total, paymentMethod:method, state, name, email}
+            orders[i] = {orderId, products:productList, total, paymentMethod:method, 
+                address, state, name, email}
         }
 
         return orders
@@ -95,7 +101,7 @@ exports.getOrdersByUser = async (orders) =>
 
         for(let i = 0; i < orders.length; i++)
         {
-            const {products, total, paymentMethod, state} = orders[i]
+            const {products, total, paymentMethod, state, address:thisAddress} = orders[i]
             let productList = []
 
             for(let j = 0; j < products.length; j++)
@@ -104,9 +110,12 @@ exports.getOrdersByUser = async (orders) =>
                 const quantity = products[j].quantity
                 productList[j] = {ID, name, price, quantity}
             }
-
+            console.log(address)
             const {method} = await Payment.findById(paymentMethod)
-            ordersList[i] = {products:productList, total, paymentMethod:method, state}
+            const {address} = await Address.findById(thisAddress)
+
+            ordersList[i] = {products:productList, total, paymentMethod:method,
+                address, state}
         }
 
         return ordersList

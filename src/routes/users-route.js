@@ -1,8 +1,9 @@
 const express = require('express')
 const {addUser, getUsers, userLogIn, userLogOut, suspendUser, addAddress, 
     getAddressList} = require('../controllers/users-controller')
-const { adminAuthentication, customerAuthentication } = require('../middlewares/auth')
-const {tryRegisteredUser, tryValidUser, tryLogin, tryLogout} = 
+const { adminAuthentication, customerAuthentication } = 
+require('../middlewares/auth')
+const {tryRegisteredUser, tryValidUser, tryLogin, tryLogout, tryValidAddress} = 
 require('../middlewares/user-validation')
 
 const router = express.Router()
@@ -129,7 +130,7 @@ router.post('/logout', tryLogout, async (req, res) =>
  *              description: El usuario y/o contraseña no son validos.
  */
 
- router.post('/addAddress', customerAuthentication, async (req, res) => 
+ router.post('/addAddress', customerAuthentication, tryValidAddress, async (req, res) => 
  {
     const {address} = req.body
     const user = req.user
