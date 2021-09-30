@@ -70,9 +70,6 @@ userSchema.pre('save', function(next)
         user.name = user.name.replace(/\b\w/g, c => c.toUpperCase())
     }
 
-    // user.username = user.username.toLowerCase()
-    // user.username = user.username.replace(/\b\w/g, c => c.toUpperCase())
-
     next()
 })
 

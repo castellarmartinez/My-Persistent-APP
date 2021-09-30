@@ -13,7 +13,7 @@ app.use(helmet())
 app.use(express.json())
 app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerSpecs))
 
-app.use('/usuarios', require('./routes/users-route'))
+app.use('/users', require('./routes/users-route'))
 app.use('/productos', require('./routes/products-route'))
 app.use('/mediosdepago', require('./routes/payment-route'))
 app.use('/pedidos', require('./routes/order-route'))

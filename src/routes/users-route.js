@@ -3,56 +3,56 @@ const {addUser, getUsers, userLogIn, userLogOut, suspendUser, addAddress,
     getAddressList} = require('../controllers/users-controller')
 const { adminAuthentication, customerAuthentication } = 
 require('../middlewares/auth')
-const {tryRegisteredUser, tryValidUser, tryLogin, tryLogout, tryValidAddress} = 
-require('../middlewares/user-validation')
+const {tryRegisteredUser, tryValidUser, tryLogin, tryLogout, tryValidAddress, 
+    trySuspend} = require('../middlewares/user-validation')
 
 const router = express.Router()
 
 /**
  * @swagger
- * /usuarios/registro:
+ * /users/register:
  *  post:
- *      tags: [Usuarios]
- *      summary: Registrar un nuevo usuario sin privilegios de administrador.
- *      description: Permite el registro de nuevos usuarios.
+ *      tags: [Users]
+ *      summary: Register a new user without administrator privileges.
+ *      description: Allow registering new users.
  *      requestBody:
  *          required: true
  *          content:
  *              application/json:
  *                  schema:
- *                      $ref: '#/components/schemas/registro'
+ *                      $ref: '#/components/schemas/register'
  *      responses:
  *          "200":
- *              description: Registro exitoso.
+ *              description: Successful registration.
  *          "400":
- *              description: Los datos de registro no son validos.
+ *              description: Restration data is not valid.
  *          "405":
- *              description: El username y/o email ya se encuentran registrados.
+ *              description: Username or email already in use.
  */
 
- router.post('/registro', tryValidUser, tryRegisteredUser, async (req, res) => 
- {
-     const newUser = req.body
-     const success = await addUser(newUser)
+ router.post('/register', tryValidUser, tryRegisteredUser, async (req, res) => 
+{
+    const newUser = req.body
+    const success = await addUser(newUser)
  
-     if(success)
-     {
-         res.status(201).send('Congratulations!\nYour account has been successfully'
-         + ' created.') 
-     }  
-     else
-     {
-         res.status(500).send('Your account could not be created.')
-     }
- })
+    if(success)
+    {
+        res.status(201).send('Congratulations!\nYour account has been successfully'
+        + ' created.') 
+    }  
+    else
+    {
+        res.status(500).send('Your account could not be created.')
+    }
+})
  
 /**
  * @swagger
- * /usuarios/login:
+ * /users/login:
  *  post:
- *      tags: [Usuarios]
- *      summary: Ingreso a todos los usuarios registrados.
- *      description: La da acceso a un usuario.
+ *      tags: [Users]
+ *      summary: Access to all registered users.
+ *      description: Give access to users.
  *      requestBody:
  *          required: true
  *          content:
@@ -61,9 +61,9 @@ const router = express.Router()
  *                      $ref: '#/components/schemas/login'
  *      responses:
  *          "200":
- *              description: El usuarion ingresó exitosamente.
+ *              description: User is now logged in.
  *          "500":
- *              description: El usuario y/o contraseña no son validos.
+ *              description: User or password is invalid.
  */
 
 router.post('/login', tryLogin, async (req, res) => 
@@ -71,20 +71,20 @@ router.post('/login', tryLogin, async (req, res) =>
     const user = req.user
     const token = await userLogIn(user)
 
-    res.status(200).send(`You are now logged in. Your token for this session:
-    ${token}`) 
+    res.status(200).send('You are now logged in. Your token for this session:\n' +
+    token) 
 })
 
 /**
  * @swagger
- * /usuarios/logout:
+ * /users/logout:
  *  post:
- *      tags: [Usuarios]
- *      summary: Obtener las cuentas registradas (nombre, usuario, administrador).
- *      description: Devuelve una lista con los usuarios registrados.
+ *      tags: [Users]
+ *      summary: End session for users.
+ *      description: Remove access to users.
  *      responses:
  *          200:
- *              description: Operación exitosa.
+ *              description: Succesful operation.
  *              content:
  *                  application/json:
  *                      schema:
@@ -92,7 +92,7 @@ router.post('/login', tryLogin, async (req, res) =>
  *                          items:
  *                              $ref: '#/components/schemas/logout'
  *          401:
- *              description: Se necesita permiso para realizar esa accion
+ *              description: You need to be logged in.
  */
 
 router.post('/logout', tryLogout, async (req, res) => 
@@ -112,11 +112,11 @@ router.post('/logout', tryLogout, async (req, res) =>
 
 /**
  * @swagger
- * /usuarios/addAddress:
+ * /users/addAddress:
  *  post:
- *      tags: [Usuarios]
- *      summary: Ingreso a todos los usuarios registrados.
- *      description: La da acceso a un usuario.
+ *      tags: [Users]
+ *      summary: Add new address in the address book.
+ *      description: Allow adding a new address.
  *      requestBody:
  *          required: true
  *          content:
@@ -125,13 +125,13 @@ router.post('/logout', tryLogout, async (req, res) =>
  *                      $ref: '#/components/schemas/addAddress'
  *      responses:
  *          "200":
- *              description: El usuarion ingresó exitosamente.
+ *              description: The address has been added.
  *          "500":
- *              description: El usuario y/o contraseña no son validos.
+ *              description: Error adding a new address.
  */
 
- router.post('/addAddress', customerAuthentication, tryValidAddress, async (req, res) => 
- {
+router.post('/addAddress', customerAuthentication, tryValidAddress, async (req, res) => 
+{
     const {address} = req.body
     const user = req.user
     const success = await addAddress(address, user)
@@ -144,29 +144,29 @@ router.post('/logout', tryLogout, async (req, res) =>
     {
         res.status(201).send('Unable to add address.')
     }
- })
+})
 
 /**
  * @swagger
- * /usuarios/lista:
+ * /users/list:
  *  get:
- *      tags: [Usuarios]
- *      summary: Obtener las cuentas registradas (nombre, usuario, administrador).
- *      description: Devuelve una lista con los usuarios registrados.
+ *      tags: [Users]
+ *      summary: Obtain all accounts registered.
+ *      description: Allow to see all accounts.
  *      responses:
  *          200:
- *              description: Operación exitosa.
+ *              description: Successful operation.
  *              content:
  *                  application/json:
  *                      schema:
  *                          type: array
  *                          items:
- *                              $ref: '#/components/schemas/lista de usuarios'
+ *                              $ref: '#/components/schemas/accountsList'
  *          401:
- *              description: Se necesita permiso para realizar esa accion
+ *              description: You need admin privileges to perform this operation
  */
 
-router.get('/lista', adminAuthentication, async (req, res) => 
+router.get('/list', adminAuthentication, async (req, res) => 
 {
     const users = await getUsers()
 
@@ -182,22 +182,22 @@ router.get('/lista', adminAuthentication, async (req, res) =>
 
 /**
  * @swagger
- * /usuarios/getAddresses:
+ * /users/getAddresses:
  *  get:
- *      tags: [Usuarios]
- *      summary: Obtener las cuentas registradas (nombre, usuario, administrador).
- *      description: Devuelve una lista con los usuarios registrados.
+ *      tags: [Users]
+ *      summary: Obtain the user's address book
+ *      description: Allow to see all user's addresses.
  *      responses:
  *          200:
- *              description: Operación exitosa.
+ *              description: Successful operation.
  *              content:
  *                  application/json:
  *                      schema:
  *                          type: array
  *                          items:
- *                              $ref: '#/components/schemas/address list'
+ *                              $ref: '#/components/schemas/addressList'
  *          401:
- *              description: Se necesita permiso para realizar esa accion
+ *              description: You need to be logged in to perform this operation.
  */
 
 router.get('/getAddresses', customerAuthentication, async (req, res) => 
@@ -217,30 +217,28 @@ router.get('/getAddresses', customerAuthentication, async (req, res) =>
 
 /**
  * @swagger
- * /usuarios/suspend:
+ * /users/suspend:
  *  put:
- *      tags: [Usuarios]
- *      summary: Suspender un usuario.
- *      description: Permite la modificación de los productos en la tienda.
+ *      tags: [Users]
+ *      summary: Suspend a user.
+ *      description: Allow to suspend not admin users.
  *      requestBody:
  *          required: true
  *          content:
  *              application/json:
  *                  schema:
- *                      $ref: '#/components/schemas/suspend user'
+ *                      $ref: '#/components/schemas/suspend'
  *      responses:
  *          200:
- *              description: Operación exitosa.
+ *              description: Successful operation.
  *          400:
- *              description: El producto no se pudo agregar por información errónea del mismo.
- *          401:
- *              description: Se necesitan permisos de administrador para realizar esa operación.
+ *              description: You need admin privileges to perform this operation.
  */
 
-router.put('/suspend', adminAuthentication, async (req, res) => 
+router.put('/suspend', adminAuthentication, trySuspend, async (req, res) => 
 {
-    const {email} = req.body
-    const {success, message} = await suspendUser(email)
+    const user = req.user
+    const {success, message} = await suspendUser(user)
 
     if(success)
     {
@@ -255,35 +253,35 @@ router.put('/suspend', adminAuthentication, async (req, res) =>
 /**
  * @swagger
  * tags:
- *  name: Usuarios
- *  description: Seccion de usuarios
+ *  name: Users
+ *  description: Users section
  * 
  * components: 
  *  schemas:
- *      lista de usuarios:
+ *      accountsList:
  *          type: object
  *          properties:
- *              nombre:
+ *              name:
  *                  type: string
- *              usuario:
+ *              username:
  *                  type: string
- *              administrador:
+ *              admin:
  *                  type: boolean
  *          example:
- *              nombre: Arnedes Olegario
- *              nombre de usuario: arneolegario
- *              administrador: false
+ *              name: Arnedes Olegario
+ *              username: arneolegario
+ *              admin: false
  */
 
 /**
  * @swagger
  * tags:
- *  name: Usuarios
- *  description: Seccion de usuarios
+ *  name: Users
+ *  description: Users section
  * 
  * components: 
  *  schemas:
- *      address list:
+ *      addressList:
  *          type: object
  *          properties:
  *              address:
@@ -298,31 +296,19 @@ router.put('/suspend', adminAuthentication, async (req, res) =>
 /**
  * @swagger
  * tags:
- *  name: Usuarios
- *  description: Seccion de usuarios
+ *  name: Users
+ *  description: Users section
  * 
  * components: 
  *  schemas:
  *      logout:
- *          type: object
- *          properties:
- *              nombre:
- *                  type: string
- *              usuario:
- *                  type: string
- *              administrador:
- *                  type: boolean
- *          example:
- *              nombre: Arnedes Olegario
- *              nombre de usuario: arneolegario
- *              administrador: false
  */
 
 /**
  * @swagger
  * tags:
- *  name: Usuarios
- *  description: Seccion de usuarios
+ *  name: Users
+ *  description: Users section
  * 
  * components: 
  *  schemas:
@@ -337,15 +323,15 @@ router.put('/suspend', adminAuthentication, async (req, res) =>
  *              password:
  *                  type: string
  *          example:
- *              email: aolegario@nebular.com
- *              password: arneolegario
+ *              email: olegario@delilahresto.com
+ *              password: Olegax007
  */
 
 /**
  * @swagger
  * tags:
- *  name: Usuarios
- *  description: Seccion de usuarios
+ *  name: Users
+ *  description: Users section
  * 
  * components: 
  *  schemas:
@@ -363,52 +349,52 @@ router.put('/suspend', adminAuthentication, async (req, res) =>
 /**
  * @swagger
  * tags:
- *  name: Usuarios
- *  description: Seccion de usuarios
+ *  name: Users
+ *  description: Users section
  * 
  * components: 
  *  schemas:
- *      registro:
+ *      register:
  *          type: object
  *          requred:
- *              -nombre
- *              -usuario
- *              -contrasena
+ *              -name
+ *              -username
+ *              -password
  *              -email
- *              -telefono
+ *              -phone
  *          properties:
- *              nombre:
+ *              name:
  *                  type: string
- *                  description: Nombres 
- *              usuario:
+ *                  description: Full name 
+ *              username:
  *                  type: string
- *                  description: Nombre de usuario
- *              contrasena:
+ *                  description: username
+ *              password:
  *                  type: string
- *                  description: Contrasena
+ *                  description: password
  *              email:
  *                  type: string
- *                  description: Correo electronico
- *              telefono:
+ *                  description: email
+ *              phone:
  *                  type: integer
- *                  description: Telefono
+ *                  description: phone
  *          example:
- *              nombre: Arnedes Olegario
- *              usuario: arneolegario
- *              contrasena: Deivic007
- *              email: olegario.arnedes@nebular.com
- *              telefono: 3735648623
+ *              name: Arnedes Olegario
+ *              username: arneolegario
+ *              password: Olegax007
+ *              email: olegario@delilahresto.com
+ *              phone: 3735648623
  */
 
 /**
  * @swagger
  * tags:
- *  name: Productos
- *  description: Seccion de usuarios
+ *  name: Users
+ *  description: Users section
  * 
  * components: 
  *  schemas:
- *      suspend user:
+ *      suspend:
  *          type: object
  *          properties:
  *              email:
@@ -417,4 +403,4 @@ router.put('/suspend', adminAuthentication, async (req, res) =>
  *              email: user@delilahresto.com
  */
 
-module.exports = router;
+module.exports = router

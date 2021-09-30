@@ -65,7 +65,6 @@ const customerAuthentication = async (req, res, next) =>
     }
 }
 
-
 const userAuthentication = async (req, res, next) =>
 {
     try
@@ -85,4 +84,5 @@ const userAuthentication = async (req, res, next) =>
     }
 }
 
-module.exports = {adminAuthentication, customerAuthentication, userAuthentication}
+module.exports = {adminAuthentication, customerAuthentication, userAuthentication,
+bearerAuth}

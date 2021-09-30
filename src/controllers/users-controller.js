@@ -40,15 +40,15 @@ exports.getUsers = async () =>
 {
     try
     {
-        const result = await User.find({})
+        const users = await User.find({})
         
-        const users = result.map((element) => 
+        const userList = users.map((user) => 
         {
-            const {name, usermane, email, phone, isAdmin} = element
-            return {name, usermane, email, phone, isAdmin}
+            const {name, usermane, email, phone, isAdmin, isActive} = user
+            return {name, usermane, email, phone, isAdmin, isActive}
         })
 
-        return users
+        return userList
     }
     catch(error)
     {
@@ -113,17 +113,10 @@ exports.userLogOut = async (user) =>
     }
 }
 
-exports.suspendUser = async (email) =>
+exports.suspendUser = async (user) =>
 {   
     try
     {
-        const user = await User.findOne({email})
-
-        if(user.isAdmin)
-        {
-            throw new Error('Admin user cannot be suspended.')
-        }
-
         user.isActive = !user.isActive
         const success = await user.save()
         const message = user.isActive ? 'unsuspended.' : 'suspended.'
