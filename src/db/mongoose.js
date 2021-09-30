@@ -11,7 +11,7 @@ async function database()
         await mongoose.connect(`mongodb://${config.default.DB_HOST}:27017/${config.default.DB_NAME}`)
         console.log('Connected to the database:', config.default.DB_NAME)
 
-        const users = await User.find()
+        const users = await User.find({isAdmin: true})
 
         if(users.length === 0)
         {
