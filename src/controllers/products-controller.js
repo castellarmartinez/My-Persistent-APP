@@ -38,9 +38,7 @@ exports.updateProduct = async (ID, update) =>
 {
     try
     {
-        const product = await Product.findByIdAndUpdate({ID}, update)
-
-        return product
+        return await Product.findOneAndUpdate({ID}, update)
     }
     catch(error)
     {

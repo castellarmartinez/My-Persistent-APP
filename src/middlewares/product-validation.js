@@ -21,6 +21,27 @@ const ProductSchema = Joi.object({
         .required()
 })
 
+function invalidProductError(message)
+{
+    if(message.includes('"ID"'))
+    {
+        return 'The products ID must start with "DR" followed' 
+        + ' by at least one number.'
+    }
+    else if(message.includes('"name"'))
+    {
+        return 'You must enter a name with a length between ' 
+        + '3-32 characters and only contain letters, numbers and spaces.'
+    }
+    else if(message.includes('"price"'))
+    {
+        return 'The price must be a positive number.'
+    }
+    else
+    {
+        return 'The fields you are trying to add are not allowed.'
+    }
+}
 // Middlewares
 
 const tryValidProduct = async (req, res, next) => 
@@ -43,30 +64,14 @@ const tryValidProduct = async (req, res, next) =>
     }
     catch(error)
     {
-        if(error.message.includes('"ID"'))
-        {
-            res.status(300).send('The products ID must start with "DR" followed' 
-            + ' by at least one number.')
-        }
-        else if(error.message.includes('"name"'))
-        {
-            res.status(300).send('You must enter a name with a length between ' 
-            + '3-32 characters and only contain letters, numbers and spaces.')
-        }
-        else if(error.message.includes('"price"'))
-        {
-            res.status(300).send('The price must be a positive number.')
-        }
-        else
-        {
-            res.status(300).send('The fields you are trying to add are not allowed.')
-        }
+        const message = invalidProductError(error.message)
+        res.status(300).send(message)
     }
 }
 
 const tryRegisteredProduct = async (req, res, next) => 
 {
-    const ID =  req.params.id;
+    const ID =  req.params.id
 
     try
     {
@@ -89,7 +94,7 @@ const tryRegisteredProduct = async (req, res, next) =>
 
 const tryProductExist = async (req, res, next) => 
 {
-    const ID =  req.params.id;
+    const ID =  req.params.id
 
     try
     {
@@ -102,7 +107,6 @@ const tryProductExist = async (req, res, next) =>
         }
         else
         {
-            req.product = exist
             next()
         }
     }

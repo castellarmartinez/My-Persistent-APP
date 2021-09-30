@@ -50,30 +50,30 @@ function invalidUserError(message)
 {
     if(message.includes('"name"'))
     {
-        res.status(300).send('You must enter a name with a length between ' 
-        + '3-32 characters only containing letters and spaces.')
+        return 'You must enter a name with a length between ' 
+        + '3-32 characters only containing letters and spaces.'
     }
     else if(message.includes('"email"'))
     {
-        res.status(300).send('You must enter a valid email.')
+        return 'You must enter a valid email.'
     }
     else if(message.includes('"password"'))
     {
-        res.status(300).send('You must enter a password with a length ' + 
-        'between 6-32 characters.')
+        return 'You must enter a password with a length ' + 
+        'between 6-32 characters.'
     }
     else if(message.includes('"username"'))
     {
-        res.status(300).send('You must enter an username with a length ' +
-        ' between 3-32 characters only containing letters and numbers.')
+        return 'You must enter an username with a length ' +
+        ' between 3-32 characters only containing letters and numbers.'
     }
     else if(message.includes('"phone"'))
     {
-        res.status(300).send('You must enter a valid phone number.')
+        return 'You must enter a valid phone number.'
     }
     else
     {
-        res.status(300).send('The fields you are trying to add are not allowed.')
+        return 'The fields you are trying to add are not allowed.'
     }
 }
 
@@ -91,7 +91,8 @@ const tryValidUser = async (req, res, next) =>
     }
     catch(error)
     {
-        invalidUserError(error.message)
+        const message = invalidUserError(error.message)
+        res.status(300).send(message)
     }
 }
 

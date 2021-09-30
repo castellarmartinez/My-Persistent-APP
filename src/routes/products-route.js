@@ -10,13 +10,13 @@ const router = express.Router()
 
 /**
  * @swagger
- * /productos/agregar/{productoId}:
+ * /products/add/{productId}:
  *  post:
- *      tags: [Productos]
- *      summary: Agregar un producto a la tienda.
- *      description: Permite la adición de un producto a la tienda.
+ *      tags: [Products]
+ *      summary: Add a product to the menu.
+ *      description: Allow addition of new products.
  *      parameters:
- *      -   name: "productoId"
+ *      -   name: "productId"
  *          in: "path"
  *          required: true
  *          type: "string"
@@ -25,17 +25,17 @@ const router = express.Router()
  *          content:
  *              application/json:
  *                  schema:
- *                      $ref: '#/components/schemas/adicion de productos'
+ *                      $ref: '#/components/schemas/addition'
  *      responses:
  *          201:
- *              description: El producto se agregó exitosamente.
+ *              description: The product was added successfuly.
  *          400:
- *              description: El producto no se pudo agregar por información errónea del mismo.
+ *              description: The product data is invalid.
  *          401:
- *              description: Se necesitan permisos de administrador para realizar esa operación.
+ *              description: You need admin privileges.
  */
 
- router.post('/agregar/:id/', adminAuthentication, tryRegisteredProduct, 
+ router.post('/add/:id/', adminAuthentication, tryRegisteredProduct, 
  tryValidProduct, async (req, res) => 
  {
      const newProduct = req.body
@@ -54,23 +54,23 @@ const router = express.Router()
  
 /**
  * @swagger
- * /productos/lista:
+ * /products/list:
  *  get:
- *      tags: [Productos]
- *      summary: Obtener todos los productos que hay en la tienda.
- *      description: Devuelve una lista con los productos.
+ *      tags: [Products]
+ *      summary: Obtain all products in the menu.
+ *      description: Return a list of the products.
  *      responses:
  *          200:
- *              description: Operación exitosa.
+ *              description: Succesfully operation.
  *              content:
  *                  application/json:
  *                      schema:
  *                          type: array
  *                          items:
- *                              $ref: '#/components/schemas/lista productos'
+ *                              $ref: '#/components/schemas/productList'
  */
 
-router.get('/lista', async (req, res) => 
+router.get('/list', async (req, res) => 
 {
     const products = await getProducts()
 
@@ -86,13 +86,13 @@ router.get('/lista', async (req, res) =>
 
 /**
  * @swagger
- * /productos/modificar/{productoId}:
+ * /products/edit/{productId}:
  *  put:
- *      tags: [Productos]
- *      summary: Modificar un producto de la tienda.
- *      description: Permite la modificación de los productos en la tienda.
+ *      tags: [Products]
+ *      summary: Edit a product on the menu.
+ *      description: Allow edition of products.
  *      parameters:
- *      -   name: "productoId"
+ *      -   name: "productId"
  *          in: "path"
  *          required: true
  *          type: "string"
@@ -101,17 +101,17 @@ router.get('/lista', async (req, res) =>
  *          content:
  *              application/json:
  *                  schema:
- *                      $ref: '#/components/schemas/adicion de productos'
+ *                      $ref: '#/components/schemas/edition'
  *      responses:
  *          200:
- *              description: Operación exitosa.
+ *              description: Successful operation.
  *          400:
- *              description: El producto no se pudo agregar por información errónea del mismo.
+ *              description: Product data is invalid.
  *          401:
- *              description: Se necesitan permisos de administrador para realizar esa operación.
+ *              description: You need admin privileges to peform this operation.
  */
 
-router.put('/modificar/:id/', adminAuthentication, 
+router.put('/edit/:id/', adminAuthentication, 
 tryProductExist, tryValidProduct, async (req, res) => 
 {
     const update = req.body
@@ -130,34 +130,26 @@ tryProductExist, tryValidProduct, async (req, res) =>
 
 /**
  * @swagger
- * /productos/eliminar/{productoId}:
+ * /products/delete/{productId}:
  *  delete:
- *      tags: [Productos]
- *      summary: Eliminar un producto de la tienda.
- *      description: Permite la eliminación de los productos de la tienda.
+ *      tags: [Products]
+ *      summary: Delete a product from the menu.
+ *      description: Allow elimination of products.
  *      parameters:
- *      -   name: "productoId"
+ *      -   name: "productId"
  *          in: "path"
  *          required: true
  *          type: "string"
  *      responses:
  *          200:
- *              description: Operación exitosa.
+ *              description: Successful operation.
  *          400:
- *              description: El el id del producto que inteta eliminar no existe.
+ *              description: The product you intent to delete, does not exist.
  *          401:
- *              description: Se necesitan permisos de administrador para realizar esa operación.
+ *              description: You need admin privileges to perform this operation.
  */
 
-// router.delete('/eliminar/:id/', autenticacionAdmin, productoExiste, (req, res) => {
-//     const id = req.params.id;
-//     const producto = obtenerEsteProducto(id);
-//     eliminarProductos(producto);
-
-//     res.send('El producto se eliminó exitosamente.');
-// })
-
-router.delete('/eliminar/:id/',  adminAuthentication, tryProductExist, 
+router.delete('/delete/:id/',  adminAuthentication, tryProductExist, 
 async (req, res) => 
 {
     const ID = req.params.id
@@ -176,35 +168,55 @@ async (req, res) =>
 /**
  * @swagger
  * tags:
- *  name: Productos
- *  description: Seccion de productos
+ *  name: Products
+ *  description: Products section
  * 
  * components: 
  *  schemas:
- *      lista productos:
+ *      addition:
  *          type: object
  *          properties:
- *              nombre:
+ *              name:
  *                  type: string
- *              precio:
+ *              price:
  *                  type: integer
- *              id:
- *                  type: string
  *          example:
- *              nombre: Changua
- *              precio: 3000
- *              id: DR153
+ *              name: Changua
+ *              price: 3000
  */
 
 /**
  * @swagger
  * tags:
- *  name: Productos
- *  description: Seccion de productos
+ *  name: Products
+ *  description: Products section
  * 
  * components: 
  *  schemas:
- *      adicion de productos:
+ *      productList:
+ *          type: object
+ *          properties:
+ *              nombre:
+ *                  type: string
+ *              precio:
+ *                  type: integer
+ *              ID:
+ *                  type: string
+ *          example:
+ *              name: Changua
+ *              price: 3000
+ *              ID: DR153
+ */
+
+/**
+ * @swagger
+ * tags:
+ *  name: Products
+ *  description: Products section
+ * 
+ * components: 
+ *  schemas:
+ *      edition:
  *          type: object
  *          properties:
  *              nombre:
@@ -212,8 +224,8 @@ async (req, res) =>
  *              precio:
  *                  type: integer
  *          example:
- *              nombre: Carimañola
- *              precio: 500
+ *              name: Ajiaco
+ *              price: 500
  */
 
-module.exports = router;
+module.exports = router

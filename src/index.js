@@ -14,7 +14,7 @@ app.use(express.json())
 app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerSpecs))
 
 app.use('/users', require('./routes/users-route'))
-app.use('/productos', require('./routes/products-route'))
+app.use('/products', require('./routes/products-route'))
 app.use('/mediosdepago', require('./routes/payment-route'))
 app.use('/pedidos', require('./routes/order-route'))
 app.use('/prueba', require('./e'))

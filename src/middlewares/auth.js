@@ -14,6 +14,8 @@ async function bearerAuth(req)
     }
 }
 
+// Middlewares
+
 const adminAuthentication = async (req, res, next) =>
 {
     try
