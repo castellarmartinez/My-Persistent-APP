@@ -1,5 +1,6 @@
 const User = require('../models/user')
 const jwt = require('jsonwebtoken')
+const { default: config } = require('../config')
 
 // Funciones usadas para la creación de los middlewares
 
@@ -8,7 +9,7 @@ async function bearerAuth(req)
     if(req.header('Authorization'))
     {
         const token = req.header('Authorization').replace('Bearer ', '')
-        const decoded = jwt.verify(token, 'RestaurantAPI')
+        const decoded = jwt.verify(token, config.SECRET_PASS)
     
         return await User.findOne({_id: decoded._id, token: token})
     }

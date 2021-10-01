@@ -1,5 +1,5 @@
 const mongoose = require('mongoose')
-const config = require('../config')
+const { default: config } = require('../config')
 const User = require('../models/user')
 
 database()
@@ -8,8 +8,8 @@ async function database()
 {
     try
     {
-        await mongoose.connect(`mongodb://${config.default.DB_HOST}:27017/${config.default.DB_NAME}`)
-        console.log('Connected to the database:', config.default.DB_NAME)
+        await mongoose.connect(`mongodb://${config.DB_HOST}:27017/${config.DB_NAME}`)
+        console.log('Connected to the database:', config.DB_NAME)
 
         const users = await User.find({isAdmin: true})
 
@@ -24,7 +24,6 @@ async function database()
         'Caused by: Connection refused.')
     }
 }
-
 
 async function addAdminUser()
 {
