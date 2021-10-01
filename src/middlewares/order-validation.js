@@ -10,8 +10,7 @@ const OrderSchema = Joi.object(
         Joi.number()
         .min(1)
         .required(),
-        // .max(32)
-        // .required(),
+
     quantity:
         Joi.number()
         .min(1)
@@ -29,13 +28,30 @@ const OrderSchema = Joi.object(
 
 // Funciones usadas para crear los middlewares
 
-async function openOrder(user)
+function orderErrorMessage(message)
 {
-    const userOrders = await Order.find({owner: user._id, state: 'open'})
-    // const hasOpenOrder = userOrders.some((order) => order.state === 'open')
-    // const open = userOrders.length > 0 && hasOpenOrder
-
-    return userOrders
+    if(message.includes('"payment"'))
+    {
+        return 'You need to use an existing ' +
+        'payment method (payment).'
+    }
+    else if(message.includes('"state"'))
+    {
+        return 'Only "open" and "closed" are valid states' +
+        ' for new orders.'
+    }
+    else if(message.includes('"quantity"'))
+    {
+        return 'The product quantity must be greater than 0.'
+    }
+    else if(message.includes('"address"'))
+    {
+        return 'You need to provide an adress.'
+    }
+    else
+    {
+        return error.message
+    }
 }
 
 function stateAdmin(state)
@@ -130,33 +146,15 @@ const tryValidOrder = async (req, res, next) =>
         }
         else
         {
+            req.payment = methodExist
+            req.address = addressExist
             next()
         }
     }
     catch(error)
     {
-        if(error.message.includes('"payment"'))
-        {
-            res.status(401).send('You need to use an existing ' +
-            'payment method (payment).')
-        }
-        else if(error.message.includes('"state"'))
-        {
-            res.status(401).send('Only "open" and "closed" are valid states' +
-            ' for new orders.')
-        }
-        else if(error.message.includes('"quantity"'))
-        {
-            res.status(401).send('The product quantity must be greater than 0.')
-        }
-        else if(error.message.includes('"address"'))
-        {console.log(error.message)
-            res.status(401).send('You need to provide an adress da.')
-        }
-        else
-        {
-            res.status(401).send(error.message)
-        }
+        const message = orderErrorMessage(error.message)
+        res.status(400).send(message)
     }
 }
 
@@ -178,12 +176,11 @@ const tryMadeOrders = async (req, res, next) =>
 
 const tryValidAddition = async (req, res, next) => 
 {
-    const {unidades: quantity} = req.query;
+    const {quantity} = req.query;
     const validQuantity = quantity % 1 === 0 && quantity > 0
 
     if(validQuantity)
     {
-        const user = req.user
         next()
     }
     else
@@ -196,7 +193,7 @@ const tryValidElimination = async (req, res, next) =>
 {
     const ID = req.params.id
     const user = req.user
-    const {unidades: quantity} = req.query
+    const {quantity} = req.query
     const validQuantity = quantity % 1 === 0 && quantity > 0
 
     if(!validQuantity)
@@ -264,18 +261,6 @@ const tryOrderExist = async (req, res, next) =>
     }
     else{
         res.status(403).send('The order you are trying to edit does not exist.')
-    }
-}
-
-const direccionValida = (req, res, next) => {
-    const {direccion} = req.query;
-    const parametrosValidos = direccion;
-
-    if(parametrosValidos){
-        next()
-    }
-    else{
-        res.status(400).send('La direccion a la que intenta cambiar no es válida.');
     }
 }
 

@@ -1,25 +1,26 @@
 const express = require('express');
 const { addOrder, getOrders, getOrdersByUser, addProductToOrder, 
-    removeProductFromOrder, updatePaymentInOrder,updateOrderState } = 
+    removeProductFromOrder, updatePaymentInOrder,updateOrderState, updateAddress } = 
     require('../controllers/orders-controller')
 const { customerAuthentication, adminAuthentication } = require('../middlewares/auth')
 const { tryOpenOrder, tryValidOrder, tryMadeOrders, tryEditOrder, 
     tryValidAddition, tryValidElimination, tryValidStateCustomer, tryValidStateAdmin, 
     tryOrderExist} = require('../middlewares/order-validation')
 const { tryMethodUpdate } = require('../middlewares/payment-validation')
-const { tryProductExist } = require('../middlewares/product-validation')
+const { tryProductExist } = require('../middlewares/product-validation');
+const { tryAddressExist } = require('../middlewares/user-validation');
 
 const router = express.Router();
 
 /**
  * @swagger
- * /pedidos/nuevo/{productoId}:
+ * /orders/add/{productId}:
  *  post:
- *      tags: [Pedidos]
- *      summary: Hacer un nuevo pedido con un solo producto.
- *      description: Permite realizar un pedido.
+ *      tags: [Orders]
+ *      summary: Make an order.
+ *      description: Allow addition of new orders.
  *      parameters:
- *      -   name: "productoId"
+ *      -   name: "productId"
  *          in: "path"
  *          required: true
  *          type: "string"
@@ -28,24 +29,26 @@ const router = express.Router();
  *          content:
  *              application/json:
  *                  schema:
- *                      $ref: '#/components/schemas/adicion pedidos'
+ *                      $ref: '#/components/schemas/add'
  *      responses:
  *          201:
- *              description: Pedido creado.
+ *              description: Order created.
  *          400:
- *              description: El pedido no se pudo procesar por información errónea del mismo.
+ *              description: Order data is invalid.
  *          401:
- *              description: Necesita estar logeado como cliente para realizar esa accion.
+ *              description: You need to authenticate to perform this operation.
  */
 
-router.post('/nuevo/:id/', customerAuthentication, tryProductExist, 
+router.post('/add/:id/', customerAuthentication, tryProductExist, 
 tryOpenOrder, tryValidOrder, async (req, res) => 
 {
-    const thisOrder = req.body
-    const ID = req.params.id
+    const product = req.product
+    const payment = req.payment
+    const address = req.address
+    const {quantity, state} = req.body
     const user = req.user
 
-    const success = await addOrder(ID, user, thisOrder)
+    const success = await addOrder(product, quantity, payment, address, state, user)
 
     if(success)
     {
@@ -59,26 +62,26 @@ tryOpenOrder, tryValidOrder, async (req, res) =>
 
 /**
  * @swagger
- * /pedidos/lista:
+ * /orders/list:
  *  get:
- *      tags: [Pedidos]
- *      summary: Obtener el historial de pedidos de todos los clientes.
- *      description: Devuelve una lista los pedidos.
+ *      tags: [Orders]
+ *      summary: Obtain all orders.
+ *      description: Allow to see all orders.
  *      parameters: []
  *      responses:
  *          200:
- *              description: Operación exitosa.
+ *              description: Successful operation.
  *              content:
  *                  application/json:
  *                      schema:
  *                          type: array
  *                          items:
- *                              $ref: '#/components/schemas/lista pedidos'
+ *                              $ref: '#/components/schemas/list'
  *          401:
- *              description: Se necesita permiso para realizar esa accion.
+ *              description: You need admin privilages to perform this operation.
  */
 
-router.get('/lista', adminAuthentication, async (req, res) => 
+router.get('/list', adminAuthentication, async (req, res) => 
 {
     const orders = await getOrders()
 
@@ -94,26 +97,26 @@ router.get('/lista', adminAuthentication, async (req, res) =>
 
 /**
  * @swagger
- * /pedidos/historial:
+ * /orders/history:
  *  get:
- *      tags: [Pedidos]
- *      summary: Obtener el historial de pedidos hecho por un cliente.
- *      description: Devuelve la lista de pedidos.
+ *      tags: [Orders]
+ *      summary: Obtain all orders made by an user.
+ *      description: Allow to see all user's orders.
  *      parameters: []
  *      responses:
  *          200:
- *              description: Operación exitosa.
+ *              description: Successful operation.
  *              content:
  *                  application/json:
  *                      schema:
  *                          type: array
  *                          items:
- *                              $ref: '#/components/schemas/lista pedidos'
+ *                              $ref: '#/components/schemas/history'
  *          401:
- *              description: Necesita estar logeado como cliente para realizar esa accion.
+ *              description: You need to be logged in as a customer.
  */
 
-router.get('/historial', customerAuthentication, tryMadeOrders, async (req, res) => 
+router.get('/history', customerAuthentication, tryMadeOrders, async (req, res) => 
 {
     const orders = req.orders
     const ordersDetails = await getOrdersByUser(orders)
@@ -130,34 +133,35 @@ router.get('/historial', customerAuthentication, tryMadeOrders, async (req, res)
 
 /**
  * @swagger
- * /pedidos/agregarproducto/{productoId}:
+ * /orders/addProduct/{productId}:
  *  put:
- *      tags: [Pedidos]
- *      summary: Agregar un producto nuevo al pedido. 
- *      description: Permite añadir un producto al pedido abierto.
+ *      tags: [Orders]
+ *      summary: Add a new product to a order. 
+ *      description: Allow addition of a new product in the order.
  *      parameters:
- *      -   name: "productoId"
+ *      -   name: "productId"
  *          in: "path"
  *          required: true     
- *      -   name: "unidades"
+ *      -   name: "quantity"
  *          in: "query"
  *          required: true     
  *      responses:
  *          200:
- *              description: Operación exitosa.
+ *              description: Succesful operation.
  *          400:
- *              description: El pedido no se pudo procesar por información errónea.
+ *              description: Order data is invalid.
  *          401:
- *              description: Necesita estar logeado como cliente para realizar esa accion.
+ *              description: You need to be logged in as a customer.
  */
 
-router.put('/agregarproducto/:id/', customerAuthentication, tryEditOrder, 
+router.put('/addProduct/:id/', customerAuthentication, tryEditOrder, 
 tryProductExist, tryValidAddition, async (req, res) => 
 {
     const order = req.order
-    const {unidades: quantity} = req.query
+    const {quantity} = req.query
+    const quantityToAdd = parseInt(quantity, 10)
     const product = req.product
-    const success = await addProductToOrder(product, quantity, order)
+    const success = await addProductToOrder(product, quantityToAdd, order)
     
     if(success)
     {
@@ -171,41 +175,41 @@ tryProductExist, tryValidAddition, async (req, res) =>
 
 /**
  * @swagger
- * /pedidos/quitarproducto/{productoId}:
+ * /orders/removeProduct/{productId}:
  *  put:
- *      tags: [Pedidos]
- *      summary: Eliminar un producto del pedido. 
- *      description: Permite suprimir un producto del pedido abierto.
+ *      tags: [Orders]
+ *      summary: Delete a product from an order. 
+ *      description: Allow elimination of products in an order.
  *      parameters:
- *      -   name: "productoId"
+ *      -   name: "productId"
  *          in: "path"
  *          required: true     
- *      -   name: "unidades"
+ *      -   name: "quantity"
  *          in: "query"
  *          required: true     
  *      responses:
  *          200:
- *              description: Operación exitosa.
+ *              description: Succesful operation.
  *          400:
- *              description: El pedido no se pudo procesar por información errónea.
+ *              description: Order data is invalid.
  *          401:
- *              description: Necesita estar logeado como cliente para realizar esa accion.
+ *              description: You need to be logged in as a customer.
  *          405:
- *              description: No hay pedido abierto con el producto.
+ *              description: There are not open orders.
  */
 
-router.put('/quitarproducto/:id/', customerAuthentication, tryEditOrder,
+router.put('/removeProduct/:id/', customerAuthentication, tryEditOrder,
 tryProductExist, tryValidElimination, async (req, res) => 
 {
-    const {unidades} = req.query
-    const quantity = parseInt(unidades, 10)
+    const {quantity} = req.query
+    const quantityToRemove = parseInt(quantity, 10)
     const product = req.product
     const order = req.order
-    const success = await removeProductFromOrder(product, quantity, order)
+    const success = await removeProductFromOrder(product, quantityToRemove, order)
     
     if(success)
     {
-        res.status(201).send('The product has been deleted/reduced to the order.')
+        res.status(201).send('The product has been deleted/reduced from the order.')
     }
     else
     {
@@ -215,25 +219,25 @@ tryProductExist, tryValidElimination, async (req, res) =>
 
 /**
  * @swagger
- * /pedidos/cambiarpago/{option}:
+ * /orders/updatePayment/{option}:
  *  put:
- *      tags: [Pedidos]
- *      summary: Cambiar el medio de pago. 
- *      description: Permite al cliente cambiar el medio de pago del pedido abierto.
+ *      tags: [Orders]
+ *      summary: Change payment method in an order. 
+ *      description: Allow changing the payment method in an order.
  *      parameters:
  *      -   name: "option"
  *          in: "path"
  *          required: true      
  *      responses:
  *          200:
- *              description: Operación exitosa.
+ *              description: Succesful operation.
  *          400:
- *              description: El pedido no se pudo procesar por información errónea.
+ *              description: Order data is invalid.
  *          401:
- *              description: Necesita estar logeado como cliente para realizar esa accion.
+ *              description: You need to be logged in as a customer.
  */
 
-router.put('/cambiarpago/:id', customerAuthentication, tryEditOrder, 
+router.put('/updatePayment/:id', customerAuthentication, tryEditOrder, 
 tryMethodUpdate, async (req, res) => 
 {
     const payment = req.payment
@@ -250,57 +254,50 @@ tryMethodUpdate, async (req, res) =>
     }
 })
 
-// /**
-//  * @swagger
-//  * /pedidos/cambiardireccion:
-//  *  put:
-//  *      tags: [Pedidos]
-//  *      summary: Cambiar la dirección de entrega de un pedido. 
-//  *      description: Permite cambiar la dirección del pedido abierto.
-//  *      parameters:
-//  *      -   name: "direccion"
-//  *          in: "query"
-//  *          required: true      
-//  *      responses:
-//  *          200:
-//  *              description: Operación exitosa.
-//  *          400:
-//  *              description: El pedido no se pudo procesar por información errónea.
-//  *          401:
-//  *              description: Necesita estar logeado como cliente para realizar esa accion.
-//  */
+/**
+ * @swagger
+ * /orders/updateAddress:
+ *  put:
+ *      tags: [Orders]
+ *      summary: Change orders address. 
+ *      description: Allow changing the address in an order.
+ *      parameters:
+ *      -   name: "option"
+ *          in: "query"
+ *          required: true      
+ *      responses:
+ *          200:
+ *              description: Succesful operation.
+ *          400:
+ *              description: Order data is invalid.
+ *          401:
+ *              description: You need to be logged in as a customer.
+ */
 
-// // router.put('/cambiardireccion', autenticacionCliente, puedeEditarPedido, direccionValida, (req, res) => {
-// //     const {direccion} = req.query;
-// //     const {user} = req.auth;
-// //     modificarDireccion(user, direccion);
+router.put('/updateAddress', customerAuthentication, tryEditOrder, 
+tryAddressExist, async (req, res) => 
+{
+    const address = req.address
+    const order = req.order
+    const success = await updateAddress(address, order)
     
-// //     res.send('La dirección se cambió exitosamente.');
-// // })
-
-// router.put('/cambiardireccion', async (req, res) => 
-// {
-//     const {direccion} = req.query
-//     const {user} = req.auth
-//     const success = await updateAddress(direccion, user)
-    
-//     if(success)
-//     {
-//         res.status(201).send('The address has been changed.')
-//     }
-//     else
-//     {
-//         res.status(500).send('Could not change the address.')
-//     }
-// })
+    if(success)
+    {
+        res.status(201).send('The address has been updated.')
+    }
+    else
+    {
+        res.status(500).send('Could not change the address.')
+    }
+})
 
 /**
  * @swagger
- * /pedidos/modificarestado/cliente:
+ * /orders/updateState/customer:
  *  put:
- *      tags: [Pedidos]
- *      summary: Cambiar los estados de los pedidos siendo cliente. 
- *      description: Permite a los clientes cambiar el estado de sus pedidos.
+ *      tags: [Orders]
+ *      summary: Change the state in an order. 
+ *      description: Allow changing the state in an order.
  *      parameters:
  *      -   name: "state"
  *          in: "query"
@@ -314,20 +311,12 @@ tryMethodUpdate, async (req, res) =>
  *              -   "cancelled"        
  *      responses:
  *          200:
- *              description: Operación exitosa.
+ *              description: Successful operation.
  *          401:
- *              description: Se necesita permiso para realizar esa accion.
+ *              description: You need to be logged in as a customer.
  */
 
-// //  router.put('/modificarestado/cliente', autenticacionCliente, puedeEditarPedido, estadoValidoCliente, (req, res) => {
-// //     const {estado} = req.query;
-// //     const {user} = req.auth;
-// //     modificarEstadoCliente(user, estado);
-
-// //     res.send('El estado del pedido se modificó exitosamente.')
-// // })
-
-router.put('/modificarestado/cliente', customerAuthentication, tryEditOrder, 
+router.put('/updateState/customer', customerAuthentication, tryEditOrder, 
 tryValidStateCustomer, async (req, res) => 
 {
     const {state} = req.query
@@ -346,11 +335,11 @@ tryValidStateCustomer, async (req, res) =>
 
 /**
  * @swagger
- * /pedidos/modificarestado/admin:
+ * /orders/updateState/admin:
  *  put:
- *      tags: [Pedidos]
- *      summary: Cambiar los estados de los pedidos siendo administrador. 
- *      description: Permite a los administradores cambiar el estado de los pedidos.
+ *      tags: [Orders]
+ *      summary: Change the state or the orders as an admin. 
+ *      description: Allow changin the state of the orders.
  *      parameters:
  *      -   name: "orderId"
  *          in: "query"
@@ -370,19 +359,12 @@ tryValidStateCustomer, async (req, res) =>
  *              -   "delivered"         
  *      responses:
  *          200:
- *              description: Operación exitosa.
+ *              description: Successful operation.
  *          401:
- *              description: Necesitas estar logeado para realizar esa accion.
+ *              description: You need admin privileges to perform this operation.
  */
 
-// // router.put('/modificarestado/admin', autenticacionAdmin, ordenExiste, estadoValidoAdmin, (req, res) => {
-// //     const {ordenId, estado} = req.query;
-// //     modificarEstadoAdmin(ordenId, estado);
-
-// //     res.send('El estado del pedido se modificó exitosamente.')
-// // })
-
-router.put('/modificarestado/admin', adminAuthentication, tryOrderExist, 
+router.put('/updateState/admin', adminAuthentication, tryOrderExist, 
 tryValidStateAdmin, async (req, res) => 
 {
     const {state} = req.query
@@ -402,56 +384,82 @@ tryValidStateAdmin, async (req, res) =>
 /**
  * @swagger
  * tags:
- *  name: Pedidos
- *  description: Seccion de productos
+ *  name: Orders
+ *  description: Orders section
  * 
  * components: 
  *  schemas:
- *      lista pedidos:
+ *      list:
  *          type: object
  *          properties:
- *              nombre:
+ *              name:
  *                  type: string
- *              usuario:
+ *              username:
  *                  type: string
  *              email:
  *                  type: string
- *              telefono:
+ *              phone:
  *                  type: integer
- *              direccion:
+ *              address:
  *                  type: string
- *              descripcion:
- *                  type: string
- *              valor:
+ *              total:
  *                  type: integer
- *              medioPago:
+ *              payment:
  *                  type: string
- *              orden:
+ *              order:
  *                  type: string
- *              estado:
+ *              state:
  *                  type: string
  *          example:
- *              nombre: Pancracio Anacleto
- *              usuario: panacleto
+ *              name: Pancracio Anacleto
+ *              username: panacleto
  *              email: señorpancracio@nubelar.com
- *              telefono: 4630107
- *              direccion: Calle los ahogados
- *              descripcion: 1xArepa 3xPandebonos
- *              valor: 36000
- *              medioPago: Efectivo
- *              orden: '#16'
- *              estado: confirmado
+ *              phone: 4630107
+ *              address: Calle los ahogados
+ *              description: 1xArepa 3xPandebonos
+ *              total: 36000
+ *              payment: Efectivo
+ *              order: '#16'
+ *              state: confirmado
  */
 
 /**
  * @swagger
  * tags:
- *  name: Pedidos
- *  description: Seccion de productos
+ *  name: Orders
+ *  description: Orders section
  * 
  * components: 
  *  schemas:
- *      adicion pedidos:
+ *      history:
+ *          type: object
+ *          properties:
+ *              total:
+ *                  type: integer
+ *              payment:
+ *                  type: string
+ *              order:
+ *                  type: string
+ *              state:
+ *                  type: string
+ *          example:
+ *              address: Calle los ahogados
+ *              description: 1xArepa 3xPandebonos
+ *              total: 36000
+ *              payment: Efectivo
+ *              order: '#16'
+ *              state: confirmado
+ */
+
+/**
+ * @swagger
+ * tags:
+ *  name: Orders
+ *  description: Orders section
+ * 
+ * components: 
+ *  schemas:
+ *      add:
  *          type: object
  *          properties:
  *              qunatity:
@@ -462,6 +470,7 @@ tryValidStateAdmin, async (req, res) =>
  *          example:
  *              quantity: 5
  *              payment: 2
+ *              address: 1
  *              state: open
  */
 
