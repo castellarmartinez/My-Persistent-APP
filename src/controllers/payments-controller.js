@@ -1,23 +1,10 @@
 const Payment = require('../models/payment-method')
 
-const addPaymentMethod = async ({method}) =>
+const addPaymentMethod = async (method) =>
 {
     try
     {
-        const allMethods = await getPaymentMethods()
-        let option
-
-        if(allMethods.length === 0)
-        {
-            option = 1
-        }
-        else
-        {
-            let last = allMethods.slice(-1)[0].option           
-            last ? option = ++last : option = 1
-        }
-
-        const newMethod = new Payment({method, option})
+        const newMethod = new Payment({method})
 
         return await newMethod.save()
     }
@@ -31,11 +18,11 @@ const getPaymentMethods = async () =>
 {
     try
     {
-        const result = await Payment.find({})
+        const payments = await Payment.find({})
         
-        const methods = result.map((element) => 
+        const methods = payments.map((payment) => 
         {
-            const {method, option} = element
+            const {method, option} = payment
             return {method, option}
         })
 
@@ -61,19 +48,30 @@ const updatePaymentMethods = async (option, method) =>
     }
 }
 
-const deletePaymentMethods = async (option) =>
+// const deletePaymentMethods = async (option) =>
+// {
+//     try
+//     {
+//         const method = await Payment.findOneAndDelete({option})
+//         const allMethods = await getPaymentMethods()
+//         for(let i = 0; i < allMethods.length; i++)
+//         {
+//             await Payment.findOneAndUpdate({option: allMethods[i].option}, {option: i + 1})
+//         }
+        
+//         return method
+//     }
+//     catch(error)
+//     {
+//         return console.log(error.message)
+//     }
+// }
+
+const deletePaymentMethods = async (payment) =>
 {
     try
-    {
-        const method = await Payment.findOneAndDelete({option})
-        const allMethods = await getPaymentMethods()
-
-        for(let i = 0; i < allMethods.length; i++)
-        {
-            await Payment.findOneAndUpdate({option: allMethods[i].option}, {option: i + 1})
-        }
-        
-        return method
+    {   
+        return await payment.delete()
     }
     catch(error)
     {

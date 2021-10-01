@@ -9,51 +9,51 @@ const router = express.Router();
 
 /**
  * @swagger
- * /mediosdepago/agregar:
+ * /payment/add:
  *  post:
- *      tags: [Medios de pago]
- *      summary: Agregar un medio de pago a la tienda.
- *      description: Permite agregar un medio de pago a la tienda.
+ *      tags: [Payment methods]
+ *      summary: Add a new payment method.
+ *      description: Allow addition of new payment methods.
  *      requestBody:
  *          required: true
  *          content:
  *              application/json:
  *                  schema:
- *                      $ref: '#/components/schemas/medio nuevo'
+ *                      $ref: '#/components/schemas/newPayment'
  *      responses:
  *          201:
- *              description: El producto se agregó exitosamentea.
+ *              description: The payment method was added succesfully.
  *          400:
- *              description: El medio de no se pudo agregar.
+ *              description: The payment method could not be added.
  *          401:
- *              description: Se necesita permiso para realizar esa accion.
+ *              description: You need admin privileges to perform this operation.
  */
 
- router.post('/agregar', adminAuthentication, tryValidMethod, async (req, res) => 
- {
-     const method = req.body
-     const success = await addPaymentMethod(method)
- 
-     if(success)
-     {
-         res.status(201).send('The payment method has been added.')
-     }
-     else
-     {
-         res.status(500).send('Unable to add the payment method.')
-     }
- })
+router.post('/add', adminAuthentication, tryValidMethod, async (req, res) => 
+{
+    const {method} = req.body
+    const success = await addPaymentMethod(method)
+
+    if(success)
+    {
+        res.status(201).send('The payment method has been added.')
+    }
+    else
+    {
+        res.status(500).send('Unable to add the payment method.')
+    }
+})
 
 /**
  * @swagger
- * /mediosdepago/lista:
+ * /payment/list:
  *  get:
- *      tags: [Medios de pago]
- *      summary: Obtener todos los medios de pago que soporta la tienda.
- *      description: Devuelve una lista con los medios de pago.
+ *      tags: [Payment methods]
+ *      summary: Obtain all payment methods.
+ *      description: Allow to see all payment methods.
  *      responses:
  *          200:
- *              description: Operación exitosa.
+ *              description: Successful operation.
  *              content:
  *                  application/json:
  *                      schema:
@@ -61,10 +61,10 @@ const router = express.Router();
  *                          items:
  *                              $ref: '#/components/schemas/medios de pago'
  *          401:
- *              description: Se necesita permiso para realizar esa accion
+ *              description:  You need admin privileges to perform this operation.
  */
 
-router.get('/lista', userAuthentication, async (req, res) => 
+router.get('/list', userAuthentication, async (req, res) => 
 {
     const methods = await getPaymentMethods()
 
@@ -80,13 +80,13 @@ router.get('/lista', userAuthentication, async (req, res) =>
 
 /**
  * @swagger
- * /mediosdepago/modificar/{opcion}:
+ * /payment/update/{option}:
  *  put:
- *      tags: [Medios de pago]
- *      summary: Modificar un medio de pago.
- *      description: Permite la modificación de los medios de pago.
+ *      tags: [Payment methods]
+ *      summary: Update a payment method.
+ *      description: Allow edition of a payment method.
  *      parameters:
- *      -   name: "opcion"
+ *      -   name: "option"
  *          in: "path"
  *          required: true
  *          type: "integer"
@@ -95,17 +95,17 @@ router.get('/lista', userAuthentication, async (req, res) =>
  *          content:
  *              application/json:
  *                  schema:
- *                      $ref: '#/components/schemas/medio nuevo'
+ *                      $ref: '#/components/schemas/newPayment'
  *      responses:
  *          200:
- *              description: Operación exitosa.
+ *              description: Successful operation.
  *          400:
- *              description: El producto no se pudo modificar por información errónea del mismo.
+ *              description: The product data is invalid.
  *          401:
- *              description: Se necesitan permisos de administrador para realizar esa operación.
+ *              description: You need admin privileges to perform this operation.
  */
 
-router.put('/modificar/:id/', adminAuthentication, tryMethodUpdate, 
+router.put('/update/:id/', adminAuthentication, tryMethodUpdate, 
 tryValidMethod, async (req, res) => 
 {
     const update = req.body
@@ -124,31 +124,33 @@ tryValidMethod, async (req, res) =>
 
 /**
  * @swagger
- * /mediosdepago/eliminar/{opcion}:
+ * /payment/delete/{option}:
  *  delete:
- *      tags: [Medios de pago]
- *      summary: Eliminar un medio de pago.
- *      description: Permite eliminar los medios de pago.
+ *      tags: [Payment methods]
+ *      summary: Delete a payment method.
+ *      description: Allow elimination of a pyament method.
  *      parameters:
- *      -   name: "opcion"
+ *      -   name: "option"
  *          in: "path"
  *          required: true
  *          type: "integer"
  *      responses:
  *          200:
- *              description: Operación exitosa.
+ *              description: Successful operation.
  *          400:
- *              description: El producto no se pudo eliminar por información errónea del mismo.
+ *              description: The product data is invalid.
  *          401:
- *              description: Se necesitan permisos de administrador para realizar esa operación.
+ *              description: You need admin privileges to perform this operation.
  */
 
-router.delete('/eliminar/:id/', adminAuthentication, tryMethodUpdate, 
+router.delete('/delete/:id/', adminAuthentication, tryMethodUpdate, 
 async (req, res) => 
 {
-    const option = req.params.id
-    const success = await deletePaymentMethods(option)
-    console.log(success)
+    const payment = req.payment
+    // const option = req.params.id
+    // const success = await deletePaymentMethods(option)
+    const success = await deletePaymentMethods(payment)
+
     if(success)
     {
         res.status(201).send('The payment method has been deleted.')
@@ -163,7 +165,7 @@ async (req, res) =>
 /**
  * @swagger
  * tags:
- *  name: Medios de pago
+ *  name: Payment methods
  *  description: Seccion de productos
  * 
  * components: 
@@ -171,30 +173,30 @@ async (req, res) =>
  *      medios de pago:
  *          type: object
  *          properties:
- *              medio:
+ *              method:
  *                  type: string
- *              opcion:
+ *              option:
  *                  type: integer
  *          example:
- *              medio: Tarjeta de crédito
- *              opcion: 1
+ *              method: Tarjeta de crédito
+ *              option: 1
  */
 
 /**
  * @swagger
  * tags:
- *  name: Medios de pago
+ *  name: Payment methods
  *  description: Seccion de productos
  * 
  * components: 
  *  schemas:
- *      medio nuevo:
+ *      newPayment:
  *          type: object
  *          properties:
- *              medio:
+ *              method:
  *                  type: string
  *          example:
- *              medio: Tarjeta de débito
+ *              method: Tarjeta de débito
  */
 
 module.exports = router;
