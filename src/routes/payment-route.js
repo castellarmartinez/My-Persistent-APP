@@ -166,7 +166,7 @@ async (req, res) =>
  * @swagger
  * tags:
  *  name: Payment methods
- *  description: Seccion de productos
+ *  description: Payment section
  * 
  * components: 
  *  schemas:
@@ -186,7 +186,7 @@ async (req, res) =>
  * @swagger
  * tags:
  *  name: Payment methods
- *  description: Seccion de productos
+ *  description: Payment section
  * 
  * components: 
  *  schemas:
