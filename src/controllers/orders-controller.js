@@ -4,45 +4,25 @@ const Payment = require('../models/payment-method')
 const Product = require('../models/product')
 const User = require('../models/user')
 
-exports.addOrder = async (ID, user, thisOrder) =>
+exports.addOrder = async (product, quantity, payment, theAddress, state, user) =>
 {
-    // return true
     try
     {
-        const {quantity, state, payment, address} = thisOrder
-        const thisProduct = await Product.findOne({ID})
-        const thisPayment = await Payment.findOne({option: payment})
-        const thisAddress = await Address.findOne({owner: user._id, option: address})
-        const allOrders = await Order.find({})
-        let orderId
-        
-        if(allOrders.length === 0)
-        {
-            orderId = '#1'
-        }
-        else
-        {
-            let last = allOrders.slice(-1)[0].orderId           
-            last ? orderId = '#'.concat(++last) : orderId = '#1'
-        }
-
         const newOrder = 
         {
-            orderId,
-
             products:
             [
                 {
-                    product: thisProduct._id,
+                    product: product._id,
                     quantity
                 }
             ],
 
-            paymentMethod: thisPayment._id,
+            paymentMethod: payment._id,
 
-            total: thisProduct.price * quantity,
+            total: product.price * quantity,
 
-            address: thisAddress._id,
+            address: theAddress._id,
 
             state,
 
@@ -110,7 +90,7 @@ exports.getOrdersByUser = async (orders) =>
                 const quantity = products[j].quantity
                 productList[j] = {ID, name, price, quantity}
             }
-            console.log(address)
+
             const {method} = await Payment.findById(paymentMethod)
             const {address} = await Address.findById(thisAddress)
 
@@ -131,7 +111,7 @@ exports.addProductToOrder = async (product, quantityToAdd, order) =>
     try
     {
         order.total += quantityToAdd * product.price
-        const hasProduct = false
+        let hasProduct = false
 
         for(let i = 0; i < order.products.length; i++)
         {
@@ -170,33 +150,15 @@ exports.removeProductFromOrder = async (product, quantityToRemove, order) =>
         }
         else if(originalQuantity === quantityToRemove)
         {
-            order.total -= quantityToRemove * product.price
+            const orderUpdate = removeAllAmounts(order, quantityToRemove, product)
 
-            for(let i = 0; i < order.products.length; i++)
-            {
-                if(JSON.stringify(order.products[i].product) === JSON.stringify(product._id))
-                {
-                    order.products.splice(i, 1)
-                    break
-                }
-            }
-
-            return await order.save()
+            return await orderUpdate.save()
         }
         else // no removal of all units
         {
-            const newQuantity = originalQuantity - quantityToRemove
-            order.total -= quantityToRemove * product.price
-            
-            for(let i = 0; i < order.products.length; i++)
-            {
-                if(JSON.stringify(order.products[i].product) === JSON.stringify(product._id))
-                {
-                    order.products[i].quantity = newQuantity
-                }
-            }
+            const orderUpdate = decreaseAmount(order, originalQuantity, quantityToRemove, product)
 
-            return await order.save()
+            return await orderUpdate.save()
         }
     }
     catch(error)
@@ -231,4 +193,51 @@ exports.updateOrderState = async (state, order) =>
     {
         return console.log(error.message)
     }
+}
+
+exports.updateAddress = async (address, order) =>
+{
+    try
+    {
+        order.address = address._id
+
+        return await order.save()
+    }
+    catch(error)
+    {
+        return console.log(error.message)
+    }
+}
+
+function removeAllAmounts(order, quantityToRemove, product)
+{
+    order.total -= quantityToRemove * product.price
+
+    for(let i = 0; i < order.products.length; i++)
+    {
+        if(JSON.stringify(order.products[i].product) === JSON.stringify(product._id))
+        {
+            order.products.splice(i, 1)
+            break
+        }
+    }
+
+    return order
+}
+
+function decreaseAmount(order, originalQuantity, quantityToRemove, product)
+{
+    const newQuantity = originalQuantity - quantityToRemove
+    order.total -= quantityToRemove * product.price
+    
+    for(let i = 0; i < order.products.length; i++)
+    {
+        if(JSON.stringify(order.products[i].product) === JSON.stringify(product._id))
+        {
+            order.products[i].quantity = newQuantity
+            break
+        }
+    }
+
+    return order
 }

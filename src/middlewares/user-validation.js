@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const User = require('../models/user')
 const { bearerAuth } = require('./auth')
+const Address = require('../models/address')
 
 const UsuarioSchema = Joi.object({
     name: 
@@ -195,6 +196,31 @@ const tryValidAddress = (req, res, next) =>
     }
 }
 
+const tryAddressExist = async (req, res, next) =>
+{
+    const {option} = req.query
+    const user = req.user
+
+    try
+    {
+        const exist = await Address.findOne({owner: user._id, option})
+
+        if(exist)
+        {
+            req.address = exist
+            next()
+        }
+        else
+        {
+            throw new Error('The address you are trying to access does not exist.')
+        }
+    }
+    catch(error)
+    {
+        res.status(401).send(error.message)
+    }
+}
+
 const trySuspend = async (req, res, next) =>
 {
     const {email} = req.body
@@ -224,4 +250,4 @@ const trySuspend = async (req, res, next) =>
 }
 
 module.exports = {tryValidUser, tryRegisteredUser, tryLogin, tryLogout, 
-    tryValidAddress, trySuspend}
+    tryValidAddress, trySuspend, tryAddressExist}

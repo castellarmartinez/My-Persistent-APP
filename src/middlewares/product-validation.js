@@ -107,6 +107,7 @@ const tryProductExist = async (req, res, next) =>
         }
         else
         {
+            req.product = exist
             next()
         }
     }

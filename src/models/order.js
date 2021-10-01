@@ -1,11 +1,11 @@
 const mongoose = require('mongoose')
 
-const Order = mongoose.model('Order',
+const orderSchema = new mongoose.Schema(
 {
     orderId: 
     {
         type: String,
-        required: true
+        unique: true
     },
 
     products: 
@@ -31,11 +31,6 @@ const Order = mongoose.model('Order',
         type: Number,
         required: true
     },
-    
-    // address:
-    // {
-        
-        // }, 
         
     paymentMethod:
     {
@@ -62,7 +57,42 @@ const Order = mongoose.model('Order',
         type: mongoose.Schema.Types.ObjectId,
         required: true,
         ref: 'User'
-    },
+    }
 })
+
+orderSchema.pre('save', async function(next)
+{
+    const order = this
+
+    if(!order.orderId)
+    {
+        try
+        {
+            const allOrders = await Order.find({})
+            const count = allOrders.length
+    
+            if(count === 0)
+            {
+                order.orderId = '#'.concat(1)
+            }
+            else
+            {          
+                order.orderId = '#'.concat(count + 1)
+            }
+        
+            next()
+        }
+        catch(error)
+        {
+            console.log(error.message)
+        }
+    }
+    else
+    {
+        next()
+    }
+})
+
+const Order = mongoose.model('Order', orderSchema)
 
 module.exports = Order
