@@ -144,6 +144,14 @@ describe('Test for the creation of new users.', () =>
             })
     })
 
+    it('It should return the user previously created and stored in the database.', 
+    async () => 
+    {
+        const user = await User.findOne({email: "test@test.com"})
+        const userSaved = (user !== null)
+        userSaved.should.be.true
+    })
+
     after(async () => 
     {
         await User.deleteOne({email: "test@test.com"})
