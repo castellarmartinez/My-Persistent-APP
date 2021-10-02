@@ -102,7 +102,7 @@ router.post('/logout', tryLogout, async (req, res) =>
 
     if(success)
     {
-        res.status(201).send('Logged out successfully.')
+        res.status(200).send('Logged out successfully.')
     }
     else
     {
@@ -172,7 +172,7 @@ router.get('/list', adminAuthentication, async (req, res) =>
 
     if(users)
     {
-        res.status(201).json(users)
+        res.status(200).json(users)
     }
     else
     {
@@ -207,7 +207,7 @@ router.get('/getAddresses', customerAuthentication, async (req, res) =>
 
     if(users)
     {
-        res.status(201).json(users)
+        res.status(200).json(users)
     }
     else
     {
@@ -242,7 +242,7 @@ router.put('/suspend', adminAuthentication, trySuspend, async (req, res) =>
 
     if(success)
     {
-        res.status(201).send('The user has been ' + message) 
+        res.status(200).send('The user has been ' + message) 
     }  
     else
     {

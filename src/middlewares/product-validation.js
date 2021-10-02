@@ -65,7 +65,7 @@ const tryValidProduct = async (req, res, next) =>
     catch(error)
     {
         const message = invalidProductError(error.message)
-        res.status(300).send(message)
+        res.status(400).send(message)
     }
 }
 
@@ -88,7 +88,7 @@ const tryRegisteredProduct = async (req, res, next) =>
     }
     catch(error)
     {
-        res.status(300).send('Unexpected error in registered product.')
+        res.status(400).send('Unexpected error in registered product.')
     }
 }
 
@@ -113,7 +113,7 @@ const tryProductExist = async (req, res, next) =>
     }
     catch(error)
     {
-        res.status(300).send('Unexpected error in registered product.')
+        res.status(400).send('Unexpected error in registered product.')
     }
 }
 

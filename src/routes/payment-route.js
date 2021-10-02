@@ -147,8 +147,6 @@ router.delete('/delete/:id/', adminAuthentication, tryMethodUpdate,
 async (req, res) => 
 {
     const payment = req.payment
-    // const option = req.params.id
-    // const success = await deletePaymentMethods(option)
     const success = await deletePaymentMethods(payment)
 
     if(success)

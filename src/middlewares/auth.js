@@ -38,7 +38,7 @@ const adminAuthentication = async (req, res, next) =>
     }
     catch(error)
     {
-        res.status(401).send(error.message)
+        res.status(403).send(error.message)
     }
 }
 
@@ -64,7 +64,7 @@ const customerAuthentication = async (req, res, next) =>
     }
     catch(error)
     {
-        res.status(401).send(error.message)
+        res.status(403).send(error.message)
     }
 }
 
@@ -83,7 +83,7 @@ const userAuthentication = async (req, res, next) =>
     }
     catch(error)
     {
-        res.status(401).send(error.message)
+        res.status(403).send(error.message)
     }
 }
 

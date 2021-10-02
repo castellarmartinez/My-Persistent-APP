@@ -26,12 +26,12 @@ const tryValidMethod = async (req, res, next) =>
     {
         if(error.message.includes('"method"'))
         {
-            res.status(300).send('The method\'s name must have a length between ' 
+            res.status(400).send('The method\'s name must have a length between ' 
             + '3-32 characters and only contain letters, numbers and spaces.')
         }
         else
         {
-            res.status(300).send('The fields you are trying to add are not allowed.')
+            res.status(400).send('The fields you are trying to add are not allowed.')
         }
     }
 }
@@ -57,7 +57,7 @@ const tryMethodUpdate = async (req, res, next) =>
     }
     catch(error)
     {
-        res.status(300).send('Unexpected error in registered method.')
+        res.status(400).send('Unexpected error in registered method.')
     }
 }
 

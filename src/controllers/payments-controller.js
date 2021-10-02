@@ -48,25 +48,6 @@ const updatePaymentMethods = async (option, method) =>
     }
 }
 
-// const deletePaymentMethods = async (option) =>
-// {
-//     try
-//     {
-//         const method = await Payment.findOneAndDelete({option})
-//         const allMethods = await getPaymentMethods()
-//         for(let i = 0; i < allMethods.length; i++)
-//         {
-//             await Payment.findOneAndUpdate({option: allMethods[i].option}, {option: i + 1})
-//         }
-        
-//         return method
-//     }
-//     catch(error)
-//     {
-//         return console.log(error.message)
-//     }
-// }
-
 const deletePaymentMethods = async (payment) =>
 {
     try

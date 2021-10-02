@@ -35,7 +35,7 @@ const router = express.Router();
  *              description: Order created.
  *          400:
  *              description: Order data is invalid.
- *          401:
+ *          403:
  *              description: You need to authenticate to perform this operation.
  */
 

@@ -93,7 +93,7 @@ const tryValidUser = async (req, res, next) =>
     catch(error)
     {
         const message = invalidUserError(error.message)
-        res.status(300).send(message)
+        res.status(400).send(message)
     }
 }
 
@@ -121,7 +121,7 @@ const tryRegisteredUser = async (req, res, next) =>
     }
     catch(error)
     {
-        res.status(300).send('Unexpected error in user registration.')
+        res.status(400).send('Unexpected error in user registration.')
     }
 }
 
@@ -158,7 +158,7 @@ const tryLogin = async (req, res, next) =>
     }
     catch(error)
     {
-        res.status(401).send(error.message)
+        res.status(400).send(error.message)
     }
 }
 
@@ -178,7 +178,7 @@ const tryLogout = async (req, res, next) =>
     }
     catch(error)
     {
-        res.status(401).send('Please authenticate.')
+        res.status(403).send('Please authenticate.')
     }
 }
 
@@ -192,7 +192,7 @@ const tryValidAddress = (req, res, next) =>
     }
     else
     {
-        res.status(401).send('You must provide an address.')
+        res.status(400).send('You must provide an address.')
     }
 }
 
@@ -217,7 +217,7 @@ const tryAddressExist = async (req, res, next) =>
     }
     catch(error)
     {
-        res.status(401).send(error.message)
+        res.status(400).send(error.message)
     }
 }
 
@@ -245,7 +245,7 @@ const trySuspend = async (req, res, next) =>
     }
     catch(error)
     {
-        res.status(401).send(error.message)
+        res.status(400).send(error.message)
     }
 }
 
