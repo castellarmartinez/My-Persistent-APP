@@ -1,7 +1,7 @@
 const User = require('../models/user')
 const Address = require('../models/address')
 const jwt = require('jsonwebtoken')
-const { default: config } = require('../config')
+const {module: config} = require('../config')
 
 exports.addUser = async (newUser) =>
 {   

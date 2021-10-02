@@ -5,7 +5,7 @@ const swaggerUI = require('swagger-ui-express')
 const swaggerOptions = require('./utils/swaggerOptions')
 const swaggerSpecs = swaggerJsDoc(swaggerOptions)
 const helmet = require('helmet')
-const { default: config } = require('./config')
+const {module: config} = require('./config')
 
 const app = express()
 const PORT = config.PORT || 3000
@@ -25,3 +25,4 @@ app.listen(PORT, () =>
     console.log(`Server is up on port ${PORT}`) 
 })
 
+module.exports = app

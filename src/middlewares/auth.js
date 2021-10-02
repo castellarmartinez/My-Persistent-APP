@@ -1,6 +1,6 @@
 const User = require('../models/user')
 const jwt = require('jsonwebtoken')
-const { default: config } = require('../config')
+const {module: config} = require('../config')
 
 // Funciones usadas para la creación de los middlewares
 

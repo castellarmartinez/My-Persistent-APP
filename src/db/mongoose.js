@@ -1,5 +1,5 @@
 const mongoose = require('mongoose')
-const { default: config } = require('../config')
+const {module: config} = require('../config')
 const User = require('../models/user')
 
 database()
@@ -20,7 +20,7 @@ async function database()
     }
     catch(error)
     {
-        console.log('Error connecting to 127.0.0.1:27017.\n' + 
+        console.log('Error connecting to ' + config.DB_HOST + ':27017.\n' + 
         'Caused by: Connection refused.')
     }
 }
