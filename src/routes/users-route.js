@@ -182,7 +182,7 @@ router.get('/list', adminAuthentication, async (req, res) =>
 
 /**
  * @swagger
- * /users/getAddresses:
+ * /users/addressList:
  *  get:
  *      tags: [Users]
  *      summary: Obtain the user's address book
@@ -200,7 +200,7 @@ router.get('/list', adminAuthentication, async (req, res) =>
  *              description: You need to be logged in to perform this operation.
  */
 
-router.get('/getAddresses', customerAuthentication, async (req, res) => 
+router.get('/addressList', customerAuthentication, async (req, res) => 
 {
     const user = req.user
     const users = await getAddressList(user)
