@@ -19,7 +19,6 @@ app.use('/users', require('./routes/users-route'))
 app.use('/products', require('./routes/products-route'))
 app.use('/payment', require('./routes/payment-route'))
 app.use('/orders', require('./routes/order-route'))
-app.use('/prueba', require('./e'))
 
 app.listen(PORT, () => 
 { 
