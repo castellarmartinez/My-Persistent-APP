@@ -1,4 +1,5 @@
 const Product = require('../models/product')
+const redisClient = require('../redis/redis-server')
 
 exports.addProduct = async ({name, price}, ID) =>
 {
@@ -6,7 +7,10 @@ exports.addProduct = async ({name, price}, ID) =>
 
     try
     {
-        return await product.save()
+        const result = product.save()
+        redisClient.del('Products')
+
+        return result    
     }
     catch(error)
     {
@@ -26,6 +30,8 @@ exports.getProducts = async () =>
             return {ID, name, price}
         })
 
+        redisClient.setex('Products', 60*60, JSON.stringify(products))
+
         return products
     }
     catch(error)
@@ -38,7 +44,10 @@ exports.updateProduct = async (ID, update) =>
 {
     try
     {
-        return await Product.findOneAndUpdate({ID}, update)
+        const result = await Product.findOneAndUpdate({ID}, update)
+        redisClient.del('Products')
+
+        return result
     }
     catch(error)
     {
@@ -50,9 +59,10 @@ exports.deleteProduct = async (ID) =>
 {
     try
     {
-        const product = await Product.findOneAndDelete({ID})
+        const result = await Product.findOneAndDelete({ID})
+        redisClient.del('Products')
 
-        return product
+        return result    
     }
     catch(error)
     {

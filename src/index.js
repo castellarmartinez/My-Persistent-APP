@@ -1,11 +1,12 @@
 require('./db/mongoose')
+require('./redis/redis-server')
 const express = require('express')
 const swaggerJsDoc = require('swagger-jsdoc')
 const swaggerUI = require('swagger-ui-express')
 const swaggerOptions = require('./utils/swaggerOptions')
-const swaggerSpecs = swaggerJsDoc(swaggerOptions)
 const helmet = require('helmet')
 const {module: config} = require('./config')
+const swaggerSpecs = swaggerJsDoc(swaggerOptions)
 
 const app = express()
 const PORT = config.PORT || 3000
