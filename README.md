@@ -205,7 +205,7 @@ Allow suspension to users.
 
 This route allows to add new products to the restaurant. Example:
 
-_path_: ProductId (ID that will identificate the product)
+_path_: DR001 (ID that will identificate the product)
 
 ```javascript
 {
