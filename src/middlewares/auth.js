@@ -56,6 +56,10 @@ const customerAuthentication = async (req, res, next) =>
         {
             throw new Error('Administrators cannot perform this operation.')
         }
+        else if(!user.isActive)
+        {
+            throw new Error('The user is suspended.')
+        }
         else
         {
             req.user = user
@@ -77,6 +81,10 @@ const userAuthentication = async (req, res, next) =>
         if(!user)
         {
             throw new Error('Please authenticate.')
+        }
+        else if(!user.isActive)
+        {
+            throw new Error('The user is suspended.')
         }
 
         next()

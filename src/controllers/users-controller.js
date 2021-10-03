@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken')
 const User = require('../models/user')
 const Address = require('../models/address')
 const {module: config} = require('../config')
+const Order = require('../models/order')
 
 exports.addUser = async (newUser) =>
 {   
@@ -114,11 +115,20 @@ exports.userLogOut = async (user) =>
     }
 }
 
-exports.suspendUser = async (user) =>
+exports.suspendUser = async (user, order) =>
 {   
     try
     {
         user.isActive = !user.isActive
+        user.token = ''
+        const hasOpenOrder = await Order.findOne({owner: user._id})
+
+        if(hasOpenOrder)
+        {
+            hasOpenOrder.state = 'cancelled'
+            await hasOpenOrder.save()
+        }
+
         const success = await user.save()
         const message = user.isActive ? 'unsuspended.' : 'suspended.'
 
