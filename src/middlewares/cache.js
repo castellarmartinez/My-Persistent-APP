@@ -1,6 +1,6 @@
 const redisClient = require("../redis/redis-server")
 
-const cache = (req, res, next) =>
+const cacheProducts = (req, res, next) =>
 {
     redisClient.get('Products', (error, data) =>
     {
@@ -21,4 +21,4 @@ const cache = (req, res, next) =>
     })
 }
 
-module.exports = cache
+module.exports = cacheProducts

@@ -2,7 +2,7 @@ const express = require('express')
 const {addProduct, getProducts, updateProduct, deleteProduct} = 
 require('../controllers/products-controller')
 const { adminAuthentication } = require('../middlewares/auth')
-const cache = require('../middlewares/cache')
+const cacheProducts = require('../middlewares/cache')
 const { tryValidProduct, tryRegisteredProduct, tryProductExist } = 
 require('../middlewares/product-validation')
 
@@ -71,7 +71,7 @@ const router = express.Router()
  *                              $ref: '#/components/schemas/productList'
  */
 
-router.get('/list', cache, async (req, res) => 
+router.get('/list', cacheProducts, async (req, res) => 
 {
     const products = await getProducts()
 

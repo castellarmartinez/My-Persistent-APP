@@ -108,7 +108,7 @@ const tryOpenOrder = async (req, res, next) =>
     }
 }
 
-const tryEditOrder = async (req, res, next) => 
+const tryCanEditOrder = async (req, res, next) => 
 {
     const user = req.user
     const order = await Order.findOne({owner: user._id, state: 'open'})
@@ -158,7 +158,7 @@ const tryValidOrder = async (req, res, next) =>
     }
 }
 
-const tryMadeOrders = async (req, res, next) => 
+const tryHaveOrders = async (req, res, next) => 
 {
     const user = req.user
     const orders = await Order.find({owner: user._id})
@@ -264,6 +264,6 @@ const tryOrderExist = async (req, res, next) =>
     }
 }
 
-module.exports = {tryOpenOrder, tryValidOrder, tryMadeOrders, 
-    tryEditOrder, tryValidAddition, tryValidElimination, tryValidStateCustomer,
+module.exports = {tryOpenOrder, tryValidOrder, tryHaveOrders, 
+    tryCanEditOrder, tryValidAddition, tryValidElimination, tryValidStateCustomer,
     tryValidStateAdmin, tryOrderExist}

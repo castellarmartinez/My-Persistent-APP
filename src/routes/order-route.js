@@ -3,7 +3,7 @@ const { addOrder, getOrders, getOrdersByUser, addProductToOrder,
     removeProductFromOrder, updatePaymentInOrder,updateOrderState, updateAddress } = 
     require('../controllers/orders-controller')
 const { customerAuthentication, adminAuthentication } = require('../middlewares/auth')
-const { tryOpenOrder, tryValidOrder, tryMadeOrders, tryEditOrder, 
+const { tryOpenOrder, tryValidOrder, tryHaveOrders, tryCanEditOrder, 
     tryValidAddition, tryValidElimination, tryValidStateCustomer, tryValidStateAdmin, 
     tryOrderExist} = require('../middlewares/order-validation')
 const { tryMethodUpdate } = require('../middlewares/payment-validation')
@@ -116,7 +116,7 @@ router.get('/list', adminAuthentication, async (req, res) =>
  *              description: You need to be logged in as a customer.
  */
 
-router.get('/history', customerAuthentication, tryMadeOrders, async (req, res) => 
+router.get('/history', customerAuthentication, tryHaveOrders, async (req, res) => 
 {
     const orders = req.orders
     const ordersDetails = await getOrdersByUser(orders)
@@ -154,7 +154,7 @@ router.get('/history', customerAuthentication, tryMadeOrders, async (req, res) =
  *              description: You need to be logged in as a customer.
  */
 
-router.put('/addProduct/:id/', customerAuthentication, tryEditOrder, 
+router.put('/addProduct/:id/', customerAuthentication, tryCanEditOrder, 
 tryProductExist, tryValidAddition, async (req, res) => 
 {
     const order = req.order
@@ -198,7 +198,7 @@ tryProductExist, tryValidAddition, async (req, res) =>
  *              description: There are not open orders.
  */
 
-router.put('/removeProduct/:id/', customerAuthentication, tryEditOrder,
+router.put('/removeProduct/:id/', customerAuthentication, tryCanEditOrder,
 tryProductExist, tryValidElimination, async (req, res) => 
 {
     const {quantity} = req.query
@@ -237,7 +237,7 @@ tryProductExist, tryValidElimination, async (req, res) =>
  *              description: You need to be logged in as a customer.
  */
 
-router.put('/updatePayment/:id', customerAuthentication, tryEditOrder, 
+router.put('/updatePayment/:id', customerAuthentication, tryCanEditOrder, 
 tryMethodUpdate, async (req, res) => 
 {
     const payment = req.payment
@@ -274,7 +274,7 @@ tryMethodUpdate, async (req, res) =>
  *              description: You need to be logged in as a customer.
  */
 
-router.put('/updateAddress', customerAuthentication, tryEditOrder, 
+router.put('/updateAddress', customerAuthentication, tryCanEditOrder, 
 tryAddressExist, async (req, res) => 
 {
     const address = req.address
@@ -316,7 +316,7 @@ tryAddressExist, async (req, res) =>
  *              description: You need to be logged in as a customer.
  */
 
-router.put('/updateState/customer', customerAuthentication, tryEditOrder, 
+router.put('/updateState/customer', customerAuthentication, tryCanEditOrder, 
 tryValidStateCustomer, async (req, res) => 
 {
     const {state} = req.query
