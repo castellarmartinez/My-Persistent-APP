@@ -31,13 +31,13 @@ npm install
 
 You need tro create a file .env inside proyect's folder, with this variables:
 
--MONGODB_HOST: Host where MongoDB is running.
--MONGODB_PORT: Port MongodDB is using.
--REDIS_HOST: Host where Redis Server is running.
--REDIS_PORT: Port Redis Server is using.
--DB_NAME: Name for the database where the app will store the data.
--SECRET_PASS: Pass for hashing the users passwords via JWT.
--APP_PORT: Port the app will be using
+- MONGODB_HOST: Host where MongoDB is running.
+- MONGODB_PORT: Port MongodDB is using.
+- REDIS_HOST: Host where Redis Server is running.
+- REDIS_PORT: Port Redis Server is using.
+- DB_NAME: Name for the database where the app will store the data.
+- SECRET_PASS: Pass for hashing the users passwords via JWT.
+- APP_PORT: Port the app will be using
 
 An example could be:
 
@@ -157,6 +157,7 @@ Users can access their orders history.
 To add a new product (or increase the amount). Example:
 
 _path_: ProductID
+
 _query_: Quantity
 
 #### 8. Remove product from an open order:
@@ -164,6 +165,7 @@ _query_: Quantity
 To remove a product (or decrease the amount). Example:
 
 _path_: ProductID
+
 _query_: Quantity
 
 #### 9. Update payment method:
