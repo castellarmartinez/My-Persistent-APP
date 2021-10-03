@@ -1,16 +1,17 @@
-const express = require('express');
+const express = require('express')
 const { addOrder, getOrders, getOrdersByUser, addProductToOrder, 
-    removeProductFromOrder, updatePaymentInOrder,updateOrderState, updateAddress } = 
-    require('../controllers/orders-controller')
-const { customerAuthentication, adminAuthentication } = require('../middlewares/auth')
+    removeProductFromOrder, updatePaymentInOrder,updateOrderState, 
+    updateAddress } = require('../controllers/orders-controller')
+const { customerAuthentication, adminAuthentication } = 
+require('../middlewares/auth')
 const { tryOpenOrder, tryValidOrder, tryHaveOrders, tryCanEditOrder, 
-    tryValidAddition, tryValidElimination, tryValidStateCustomer, tryValidStateAdmin, 
-    tryOrderExist} = require('../middlewares/order-validation')
+    tryValidAddition, tryValidElimination, tryValidStateCustomer, 
+    tryValidStateAdmin, tryOrderExist} = require('../middlewares/order-validation')
 const { tryMethodUpdate } = require('../middlewares/payment-validation')
-const { tryProductExist } = require('../middlewares/product-validation');
-const { tryAddressExist } = require('../middlewares/user-validation');
+const { tryProductExist } = require('../middlewares/product-validation')
+const { tryAddressExist } = require('../middlewares/user-validation')
 
-const router = express.Router();
+const router = express.Router()
 
 /**
  * @swagger
@@ -35,8 +36,8 @@ const router = express.Router();
  *              description: Order created.
  *          400:
  *              description: Order data is invalid.
- *          403:
- *              description: You need to authenticate to perform this operation.
+ *          401:
+ *              description: You need to be authenticate to perform this operation.
  */
 
 router.post('/add/:id/', customerAuthentication, tryProductExist, 
@@ -136,7 +137,7 @@ router.get('/history', customerAuthentication, tryHaveOrders, async (req, res) =
  * /orders/addProduct/{productId}:
  *  put:
  *      tags: [Orders]
- *      summary: Add a new product to a order. 
+ *      summary: Add a new product to an order. 
  *      description: Allow addition of a new product in the order.
  *      parameters:
  *      -   name: "productId"
@@ -235,6 +236,8 @@ tryProductExist, tryValidElimination, async (req, res) =>
  *              description: Order data is invalid.
  *          401:
  *              description: You need to be logged in as a customer.
+ *          405:
+ *              description: There are not open orders.
  */
 
 router.put('/updatePayment/:id', customerAuthentication, tryCanEditOrder, 
@@ -272,6 +275,8 @@ tryMethodUpdate, async (req, res) =>
  *              description: Order data is invalid.
  *          401:
  *              description: You need to be logged in as a customer.
+ *          405:
+ *              description: There are not open orders.
  */
 
 router.put('/updateAddress', customerAuthentication, tryCanEditOrder, 
@@ -314,6 +319,8 @@ tryAddressExist, async (req, res) =>
  *              description: Successful operation.
  *          401:
  *              description: You need to be logged in as a customer.
+ *          405:
+ *              description: There are not open orders.
  */
 
 router.put('/updateState/customer', customerAuthentication, tryCanEditOrder, 

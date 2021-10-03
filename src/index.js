@@ -9,7 +9,7 @@ const {module: config} = require('./config')
 const swaggerSpecs = swaggerJsDoc(swaggerOptions)
 
 const app = express()
-const PORT = config.PORT || 3000
+const PORT = config.APP_PORT || 3000
 
 app.use(helmet())
 app.use(express.json())

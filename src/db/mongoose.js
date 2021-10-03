@@ -8,9 +8,9 @@ async function database()
 {
     try
     {
-        await mongoose.connect(`mongodb://${config.DB_HOST}:27017/${config.DB_NAME}`)
-        console.log('Connected to the database:', config.DB_NAME)
+        await mongoose.connect(`mongodb://${config.MONGODB_HOST}:${config.MONGODB_PORT}/${config.DB_NAME}`)
 
+        console.log('Connected to the database:', config.DB_NAME)
         const users = await User.find({isAdmin: true})
 
         if(users.length === 0)
@@ -20,7 +20,7 @@ async function database()
     }
     catch(error)
     {
-        console.log('Error connecting to ' + config.DB_HOST + ':27017.\n' + 
+        console.log('Error connecting to ' + config.MONGODB_HOST + ':27017.\n' + 
         'Caused by: Connection refused.')
     }
 }
@@ -39,9 +39,3 @@ async function addAdminUser()
 
     admin.save()
 }
-// main().catch(err => console.log(err))
-
-// async function main() {
-//   const db = await mongoose.connect('mongodb://localhost:27017/Delilah-Resto')
-//   console.log(db.connection.name)
-// }

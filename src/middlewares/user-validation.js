@@ -1,8 +1,7 @@
 const Joi = require('joi')
 const bcrypt = require('bcrypt')
-const jwt = require('jsonwebtoken')
-const User = require('../models/user')
 const { bearerAuth } = require('./auth')
+const User = require('../models/user')
 const Address = require('../models/address')
 
 const UsuarioSchema = Joi.object({

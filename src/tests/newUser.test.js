@@ -149,6 +149,7 @@ describe('Test for the creation of new users.', () =>
     {
         const user = await User.findOne({email: "test@test.com"})
         const userSaved = (user !== null)
+        
         userSaved.should.be.true
     })
 

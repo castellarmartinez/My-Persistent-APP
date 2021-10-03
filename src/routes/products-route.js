@@ -69,6 +69,8 @@ const router = express.Router()
  *                          type: array
  *                          items:
  *                              $ref: '#/components/schemas/productList'
+ *          500:
+ *              description: Internal error.
  */
 
 router.get('/list', cacheProducts, async (req, res) => 
@@ -87,7 +89,7 @@ router.get('/list', cacheProducts, async (req, res) =>
 
 /**
  * @swagger
- * /products/edit/{productId}:
+ * /products/update/{productId}:
  *  put:
  *      tags: [Products]
  *      summary: Edit a product on the menu.
@@ -112,7 +114,7 @@ router.get('/list', cacheProducts, async (req, res) =>
  *              description: You need admin privileges to peform this operation.
  */
 
-router.put('/edit/:id/', adminAuthentication, 
+router.put('/update/:id/', adminAuthentication, 
 tryProductExist, tryValidProduct, async (req, res) => 
 {
     const update = req.body

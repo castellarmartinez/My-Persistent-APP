@@ -13,7 +13,7 @@ const router = express.Router()
  * /users/register:
  *  post:
  *      tags: [Users]
- *      summary: Register a new user without administrator privileges.
+ *      summary: Register a new user without admin privileges.
  *      description: Allow registering new users.
  *      requestBody:
  *          required: true
@@ -22,12 +22,11 @@ const router = express.Router()
  *                  schema:
  *                      $ref: '#/components/schemas/register'
  *      responses:
- *          "200":
+ *          "201":
  *              description: Successful registration.
  *          "400":
- *              description: Restration data is not valid.
- *          "405":
- *              description: Username or email already in use.
+ *              description: Registration data is invalid or username/email
+ *                           already in use.
  */
 
  router.post('/register', tryValidUser, tryRegisteredUser, async (req, res) => 
@@ -62,7 +61,7 @@ const router = express.Router()
  *      responses:
  *          "200":
  *              description: User is now logged in.
- *          "500":
+ *          "400":
  *              description: User or password is invalid.
  */
 
@@ -81,17 +80,11 @@ router.post('/login', tryLogin, async (req, res) =>
  *  post:
  *      tags: [Users]
  *      summary: End session for users.
- *      description: Remove access to users.
+ *      description: Remove access to an user.
  *      responses:
  *          200:
  *              description: Succesful operation.
- *              content:
- *                  application/json:
- *                      schema:
- *                          type: array
- *                          items:
- *                              $ref: '#/components/schemas/logout'
- *          401:
+ *          400:
  *              description: You need to be logged in.
  */
 
@@ -220,8 +213,8 @@ router.get('/addressList', customerAuthentication, async (req, res) =>
  * /users/suspend:
  *  put:
  *      tags: [Users]
- *      summary: Suspend a user.
- *      description: Allow to suspend not admin users.
+ *      summary: Suspend an user.
+ *      description: Allow to suspend no-admin users.
  *      requestBody:
  *          required: true
  *          content:
@@ -231,7 +224,7 @@ router.get('/addressList', customerAuthentication, async (req, res) =>
  *      responses:
  *          200:
  *              description: Successful operation.
- *          400:
+ *          401:
  *              description: You need admin privileges to perform this operation.
  */
 

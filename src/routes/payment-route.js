@@ -1,7 +1,7 @@
 const express = require('express')
 const {addPaymentMethod, getPaymentMethods, updatePaymentMethods, 
     deletePaymentMethods} = require('../controllers/payments-controller');
-const { adminAuthentication, userAuthentication } = require('../middlewares/auth');
+const { adminAuthentication, userAuthentication } = require('../middlewares/auth')
 const { tryMethodUpdate, tryValidMethod } = 
 require('../middlewares/payment-validation')
 
@@ -61,7 +61,7 @@ router.post('/add', adminAuthentication, tryValidMethod, async (req, res) =>
  *                          items:
  *                              $ref: '#/components/schemas/medios de pago'
  *          401:
- *              description:  You need admin privileges to perform this operation.
+ *              description:  You need to be authenticate to perform this operation.
  */
 
 router.get('/list', userAuthentication, async (req, res) => 
@@ -197,4 +197,4 @@ async (req, res) =>
  *              method: Tarjeta de débito
  */
 
-module.exports = router;
+module.exports = router

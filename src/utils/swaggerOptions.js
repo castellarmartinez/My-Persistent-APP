@@ -1,46 +1,41 @@
-const swaggerOptions = {
-    definition: {
+const swaggerOptions = 
+{
+    definition: 
+    {
         openapi: "3.0.0",
-        info:{
-            title: "Mi Primera API",
+        info:
+        {
+            title: "My Persistent APP",
             version: "1.0.0",
-            description: "Primer proyecto del bootcamp Backend de Acámica."
+            description: "Second proyect for the Backend Bootcamp of Acamica."
         },
-        servers: [
+        servers: 
+        [
             {
                 url: "http://localhost:3000",
                 description: 'Local server'
             }
         ],
-        // components: {
-        //     securitySchemes: {
-        //         basicAuth: {
-        //             type: "http",
-        //             scheme: "basic"
-        //         }
-        //     }
-        // },
-        // security: [
-        //     {
-        //         basicAuth: []
-        //     }
-        // ]
-        components: {
-            securitySchemes: {
-                bearerAuth: {
+        components: 
+        {
+            securitySchemes: 
+            {
+                bearerAuth: 
+                {
                     type: "http",
                     scheme: "bearer",
                     bearerFormat: "JWT"
                 }
             }
         },
-        security: [
+        security: 
+        [
             {
                 bearerAuth: []
             }
         ]
     },
     apis: ["./src/routes/*.js"]
-};
+}
 
-module.exports = swaggerOptions;
+module.exports = swaggerOptions
