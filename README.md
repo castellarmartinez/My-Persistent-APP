@@ -199,7 +199,7 @@ Allow to see all users registered.
 
 #### 2. Suspend/unsuspend an user:
 
-Allow suspension to users.
+Allow suspension to users. If the user suspended have an open order this is suspended.
 
 #### 3. Add new product:
 
