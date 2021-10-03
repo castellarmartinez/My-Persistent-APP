@@ -79,7 +79,7 @@ router.get('/list', cacheProducts, async (req, res) =>
 
     if(products)
     {
-        res.status(201).json(products)
+        res.status(200).json(products)
     }
     else
     {
@@ -123,7 +123,7 @@ tryProductExist, tryValidProduct, async (req, res) =>
 
     if(success)
     {
-        res.status(201).send('The product has been updated.')
+        res.status(200).send('The product has been updated.')
     }
     else
     {
@@ -160,7 +160,7 @@ async (req, res) =>
 
     if(success)
     {
-        res.status(201).send('The product has been deleted.')
+        res.status(200).send('The product has been deleted.')
     }
     else
     {

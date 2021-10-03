@@ -107,11 +107,11 @@ const tryRegisteredUser = async (req, res, next) =>
 
         if(emailTaken)
         {
-            res.status(400).send('Email already in use.')
+            res.status(409).send('Email already in use.')
         }
         else if(usernameTaken)
         {
-            res.status(400).send('Username already in use.')
+            res.status(409).send('Username already in use.')
         }
         else
         {

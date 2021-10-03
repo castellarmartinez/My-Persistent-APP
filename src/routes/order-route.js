@@ -36,8 +36,12 @@ const router = express.Router()
  *              description: Order created.
  *          400:
  *              description: Order data is invalid.
- *          401:
+ *          403:
  *              description: You need to be authenticate to perform this operation.
+ *          409:
+ *              description: You have an open order.
+ *          500:
+ *              description: Internal error.
  */
 
 router.post('/add/:id/', customerAuthentication, tryProductExist, 
@@ -78,8 +82,10 @@ tryOpenOrder, tryValidOrder, async (req, res) =>
  *                          type: array
  *                          items:
  *                              $ref: '#/components/schemas/list'
- *          401:
+ *          403:
  *              description: You need admin privilages to perform this operation.
+ *          500:
+ *              description: Internal error.
  */
 
 router.get('/list', adminAuthentication, async (req, res) => 
@@ -88,7 +94,7 @@ router.get('/list', adminAuthentication, async (req, res) =>
 
     if(orders)
     {
-        res.status(201).json(orders)
+        res.status(200).json(orders)
     }
     else
     {
@@ -113,8 +119,12 @@ router.get('/list', adminAuthentication, async (req, res) =>
  *                          type: array
  *                          items:
  *                              $ref: '#/components/schemas/history'
- *          401:
+ *          403:
  *              description: You need to be logged in as a customer.
+ *          404:
+ *              description: You do not have orders.
+ *          500:
+ *              description: Internal error.
  */
 
 router.get('/history', customerAuthentication, tryHaveOrders, async (req, res) => 
@@ -124,7 +134,7 @@ router.get('/history', customerAuthentication, tryHaveOrders, async (req, res) =
 
     if(ordersDetails)
     {
-        res.status(201).json(ordersDetails)
+        res.status(200).json(ordersDetails)
     }
     else
     {
@@ -153,6 +163,10 @@ router.get('/history', customerAuthentication, tryHaveOrders, async (req, res) =
  *              description: Order data is invalid.
  *          401:
  *              description: You need to be logged in as a customer.
+ *          409:
+ *              description: You cannot edit orders.
+ *          500:
+ *              description: Internal error.
  */
 
 router.put('/addProduct/:id/', customerAuthentication, tryCanEditOrder, 
@@ -166,7 +180,7 @@ tryProductExist, tryValidAddition, async (req, res) =>
     
     if(success)
     {
-        res.status(201).send('The product has been added to the order.')
+        res.status(200).send('The product has been added to the order.')
     }
     else
     {
@@ -195,8 +209,10 @@ tryProductExist, tryValidAddition, async (req, res) =>
  *              description: Order data is invalid.
  *          401:
  *              description: You need to be logged in as a customer.
- *          405:
- *              description: There are not open orders.
+ *          409:
+ *              description: You cannot edit orders.
+ *          500:
+ *              description: Internal error.
  */
 
 router.put('/removeProduct/:id/', customerAuthentication, tryCanEditOrder,
@@ -210,7 +226,7 @@ tryProductExist, tryValidElimination, async (req, res) =>
     
     if(success)
     {
-        res.status(201).send('The product has been deleted/reduced from the order.')
+        res.status(200).send('The product has been deleted/reduced from the order.')
     }
     else
     {
@@ -236,8 +252,10 @@ tryProductExist, tryValidElimination, async (req, res) =>
  *              description: Order data is invalid.
  *          401:
  *              description: You need to be logged in as a customer.
- *          405:
- *              description: There are not open orders.
+ *          409:
+ *              description: You cannot edit orders.
+ *          500:
+ *              description: Internal error.
  */
 
 router.put('/updatePayment/:id', customerAuthentication, tryCanEditOrder, 
@@ -249,7 +267,7 @@ tryMethodUpdate, async (req, res) =>
     
     if(success)
     {
-        res.status(201).send('The payment method has been changed.')
+        res.status(200).send('The payment method has been changed.')
     }
     else
     {
@@ -275,8 +293,10 @@ tryMethodUpdate, async (req, res) =>
  *              description: Order data is invalid.
  *          401:
  *              description: You need to be logged in as a customer.
- *          405:
- *              description: There are not open orders.
+ *          409:
+ *              description: You cannot edit orders.
+ *          500:
+ *              description: Internal error.
  */
 
 router.put('/updateAddress', customerAuthentication, tryCanEditOrder, 
@@ -288,7 +308,7 @@ tryAddressExist, async (req, res) =>
     
     if(success)
     {
-        res.status(201).send('The address has been updated.')
+        res.status(200).send('The address has been updated.')
     }
     else
     {
@@ -319,8 +339,10 @@ tryAddressExist, async (req, res) =>
  *              description: Successful operation.
  *          401:
  *              description: You need to be logged in as a customer.
- *          405:
- *              description: There are not open orders.
+ *          409:
+ *              description: You cannot edit orders.
+ *          500:
+ *              description: Internal error.
  */
 
 router.put('/updateState/customer', customerAuthentication, tryCanEditOrder, 
@@ -332,7 +354,7 @@ tryValidStateCustomer, async (req, res) =>
     
     if(success)
     {
-        res.status(201).send('The order\'s state has been changed.')
+        res.status(200).send('The order\'s state has been changed.')
     }
     else
     {
@@ -369,6 +391,8 @@ tryValidStateCustomer, async (req, res) =>
  *              description: Successful operation.
  *          401:
  *              description: You need admin privileges to perform this operation.
+ *          500:
+ *              description: Internal error.
  */
 
 router.put('/updateState/admin', adminAuthentication, tryOrderExist, 
@@ -380,7 +404,7 @@ tryValidStateAdmin, async (req, res) =>
     
     if(success)
     {
-        res.status(201).send('The order\'s state has been changed.')
+        res.status(200).send('The order\'s state has been changed.')
     }
     else
     {

@@ -25,8 +25,9 @@ const router = express.Router()
  *          "201":
  *              description: Successful registration.
  *          "400":
- *              description: Registration data is invalid or username/email
- *                           already in use.
+ *              description: Registration data is invalid.
+ *          "409":
+ *              description:  Username or email already in use.
  */
 
  router.post('/register', tryValidUser, tryRegisteredUser, async (req, res) => 
@@ -117,7 +118,7 @@ router.post('/logout', tryLogout, async (req, res) =>
  *                  schema:
  *                      $ref: '#/components/schemas/addAddress'
  *      responses:
- *          "200":
+ *          "201":
  *              description: The address has been added.
  *          "500":
  *              description: Error adding a new address.

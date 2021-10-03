@@ -99,7 +99,7 @@ const tryOpenOrder = async (req, res, next) =>
 
     if(order)
     {
-        res.status(400).send('You can\'t have more than one open order.\n' +
+        res.status(409).send('You can\'t have more than one open order.\n' +
         'Close or cancel that order to be able to create another order.')
     }
     else
@@ -120,7 +120,7 @@ const tryCanEditOrder = async (req, res, next) =>
     }
     else
     {
-        res.status(400).send('You don\'t have any open order you can edit.')
+        res.status(409).send('You don\'t have any open order you can edit.')
     }
 }
 
@@ -170,7 +170,7 @@ const tryHaveOrders = async (req, res, next) =>
     }
     else
     {
-        res.status(400).send('You have not ordered anything.')
+        res.status(404).send('You do not have orders.')
     }
 }
 
@@ -260,7 +260,7 @@ const tryOrderExist = async (req, res, next) =>
         next()
     }
     else{
-        res.status(400).send('The order you are trying to edit does not exist.')
+        res.status(404).send('The order you are trying to edit does not exist.')
     }
 }
 

@@ -70,7 +70,7 @@ router.get('/list', userAuthentication, async (req, res) =>
 
     if(methods)
     {
-        res.status(201).json(methods)
+        res.status(200).json(methods)
     }
     else
     {
@@ -114,7 +114,7 @@ tryValidMethod, async (req, res) =>
     
     if(success)
     {
-        res.status(201).send('The product has been updated.')
+        res.status(200).send('The product has been updated.')
     }
     else
     {
@@ -151,7 +151,7 @@ async (req, res) =>
 
     if(success)
     {
-        res.status(201).send('The payment method has been deleted.')
+        res.status(200).send('The payment method has been deleted.')
     }
     else
     {
