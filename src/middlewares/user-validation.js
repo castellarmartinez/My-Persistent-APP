@@ -146,6 +146,11 @@ const tryLogin = async (req, res, next) =>
                 'This is your token, in case you forgot it:\n' + 
                 user.token)
             }
+
+            if(!user.isActive)
+            {
+                throw new Error('The user is suspended.')
+            }
     
             req.user = user
             next()

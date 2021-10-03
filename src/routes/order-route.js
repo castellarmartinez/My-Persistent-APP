@@ -230,7 +230,7 @@ tryProductExist, tryValidElimination, async (req, res) =>
     }
     else
     {
-        res.status(500).send('Could not add the product.')
+        res.status(500).send('Could not delete/reduce the product.')
     }
 })
 
